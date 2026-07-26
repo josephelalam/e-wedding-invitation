@@ -21,7 +21,7 @@ test.describe('owner lifecycle', () => {
 		// Create (slug unique per run+project so re-runs never hit slug_taken)
 		const slug = `pw-${test.info().project.name === 'chromium' ? 'c' : 'w'}-${Date.now().toString(36)}`;
 		await page.getByLabel('Link name (kebab-case)').fill(slug);
-		await page.getByLabel('Title (English)').fill('Play & Wright');
+		await page.getByLabel('Title', { exact: true }).fill('Play & Wright');
 		await page.getByLabel('Main date & time').fill('2027-10-09T17:00');
 		await page.getByRole('button', { name: 'Create event' }).click();
 		await expect(page.getByRole('heading', { name: 'Details' })).toBeVisible();

@@ -18,7 +18,8 @@ export default defineConfig({
 				directives: {
 					'default-src': ['self'],
 					'script-src': ['self', 'https://challenges.cloudflare.com'],
-					'frame-src': ['https://challenges.cloudflare.com'],
+					// 'self' so the studio can iframe its own live preview
+					'frame-src': ['self', 'https://challenges.cloudflare.com'],
 					'connect-src': ['self', 'https://challenges.cloudflare.com'],
 					'media-src': ['self'],
 					'img-src': ['self', 'data:'],

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { resolve } from '$app/paths';
 	import { renderSVG } from 'uqr';
 
 	let { data, form } = $props();
@@ -60,10 +61,17 @@
 <div class="st-card" style="margin-bottom:1.25rem">
 	<h2 class="st-h1">Couple dashboard access</h2>
 	<p class="st-sub">
-		Creates the couple's account and drops a sign-in link in the Outbox — forward it on WhatsApp.
+		<strong>No email is sent</strong> (the $0 setup has no email service) — this creates the
+		couple's account and puts their sign-in link in the
+		<a href={resolve('/studio/outbox')}>Outbox</a>, ready to forward on WhatsApp.
 	</p>
 	{#if form?.coupleError}<p class="st-error">{form.coupleError}</p>{/if}
-	{#if form?.coupleLinked}<p class="st-success">{form.coupleLinked}</p>{/if}
+	{#if form?.coupleLinked}
+		<p class="st-success">
+			{form.coupleLinked}
+			<a href={resolve('/studio/outbox')} style="font-weight:600">Open Outbox →</a>
+		</p>
+	{/if}
 	<form method="POST" action="?/coupleLogin" use:enhance class="couple-form">
 		<label class="st-field">Couple name<input name="name" placeholder="Elie &amp; Maya" /></label>
 		<label class="st-field"

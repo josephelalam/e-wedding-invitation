@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import type { SubmitFunction } from '@sveltejs/kit';
 
 	let { data, form } = $props();
 
@@ -10,74 +11,107 @@
 		['reception', 'Reception'],
 		['other', 'Other']
 	] as const;
+
+	// Keep what the owner typed after saving (enhance would otherwise reset
+	// inputs to their mount-time defaults — empty).
+	const keepValues: SubmitFunction = () => {
+		return async ({ update }) => {
+			await update({ reset: false });
+		};
+	};
 </script>
 
 <svelte:head><title>Locations — EInvite Studio</title></svelte:head>
 
 {#if form?.error}<p class="st-error">{form.error}</p>{/if}
+{#if form?.saved}<p class="st-success">Saved.</p>{/if}
 
 <div class="stack">
-	{#each data.locations as location (location.id)}
+	{#each data.locations as location, index (location.id)}
 		<div class="st-card">
-			<form method="POST" action="?/save" use:enhance class="loc-form">
+			<p class="stop-title">Stop {index + 1}</p>
+			<form method="POST" action="?/save" use:enhance={keepValues}>
 				<input type="hidden" name="id" value={location.id} />
-				<label class="st-field"
-					>Kind
-					<select name="kind" value={location.kind}>
-						{#each KINDS as [value, label] (value)}<option {value}>{label}</option>{/each}
-					</select>
-				</label>
-				<label class="st-field"
-					>Label (EN)<input name="labelEn" value={location.labelEn ?? ''} /></label
-				>
-				<label class="st-field"
-					>Label (AR)<input name="labelAr" dir="rtl" value={location.labelAr ?? ''} /></label
-				>
-				<label class="st-field"
-					>Label (FR)<input name="labelFr" value={location.labelFr ?? ''} /></label
-				>
-				<label class="st-field"
-					>Google Maps link<input name="mapsUrl" type="url" value={location.mapsUrl ?? ''} /></label
-				>
-				<label class="st-field"
-					>Time<input
-						name="startsAt"
-						type="datetime-local"
-						value={location.startsAt?.slice(0, 16) ?? ''}
-					/></label
-				>
-				<label class="st-field"
-					>Order<input name="sort" type="number" value={location.sort} /></label
-				>
+				<div class="loc-grid">
+					<label class="st-field"
+						>Kind
+						<select name="kind" value={location.kind}>
+							{#each KINDS as [value, label] (value)}<option {value}>{label}</option>{/each}
+						</select>
+					</label>
+					<label class="st-field"
+						>Label
+						<input name="labelEn" value={location.labelEn ?? ''} placeholder="Venue name" />
+					</label>
+					<label class="st-field"
+						>Google Maps link<input
+							name="mapsUrl"
+							type="url"
+							value={location.mapsUrl ?? ''}
+						/></label
+					>
+					<label class="st-field"
+						>Time<input
+							name="startsAt"
+							type="datetime-local"
+							value={location.startsAt?.slice(0, 16) ?? ''}
+						/></label
+					>
+					<label class="st-field"
+						>Order<input name="sort" type="number" value={location.sort} /></label
+					>
+				</div>
+				<details class="translations" open={Boolean(location.labelAr || location.labelFr)}>
+					<summary>Translations (optional — guests see the main label if empty)</summary>
+					<div class="loc-grid">
+						<label class="st-field"
+							>Label (Arabic)<input
+								name="labelAr"
+								dir="rtl"
+								value={location.labelAr ?? ''}
+							/></label
+						>
+						<label class="st-field"
+							>Label (French)<input name="labelFr" value={location.labelFr ?? ''} /></label
+						>
+					</div>
+				</details>
 				<div class="row-actions">
-					<button class="st-btn">Save</button>
-					<button class="st-btn danger" formaction="?/remove">Remove</button>
+					<button class="st-btn">Save this stop</button>
+					<button class="st-btn danger" formaction="?/remove" formnovalidate>Remove</button>
 				</div>
 			</form>
 		</div>
 	{/each}
 
-	<div class="st-card">
+	<div class="st-card add-card">
 		<h2 class="st-h1">Add a stop</h2>
 		<p class="st-sub">
 			The day as guests will travel it — houses, ceremony, reception. Plain Google Maps links; no
 			embeds, no API keys.
 		</p>
-		<form method="POST" action="?/save" use:enhance class="loc-form">
-			<label class="st-field"
-				>Kind
-				<select name="kind">
-					{#each KINDS as [value, label] (value)}<option {value}>{label}</option>{/each}
-				</select>
-			</label>
-			<label class="st-field">Label (EN)<input name="labelEn" /></label>
-			<label class="st-field">Label (AR)<input name="labelAr" dir="rtl" /></label>
-			<label class="st-field">Label (FR)<input name="labelFr" /></label>
-			<label class="st-field">Google Maps link<input name="mapsUrl" type="url" /></label>
-			<label class="st-field">Time<input name="startsAt" type="datetime-local" /></label>
-			<label class="st-field"
-				>Order<input name="sort" type="number" value={data.locations.length + 1} /></label
-			>
+		<form method="POST" action="?/save" use:enhance>
+			<div class="loc-grid">
+				<label class="st-field"
+					>Kind
+					<select name="kind">
+						{#each KINDS as [value, label] (value)}<option {value}>{label}</option>{/each}
+					</select>
+				</label>
+				<label class="st-field">Label<input name="labelEn" placeholder="Venue name" /></label>
+				<label class="st-field">Google Maps link<input name="mapsUrl" type="url" /></label>
+				<label class="st-field">Time<input name="startsAt" type="datetime-local" /></label>
+				<label class="st-field"
+					>Order<input name="sort" type="number" value={data.locations.length + 1} /></label
+				>
+			</div>
+			<details class="translations">
+				<summary>Translations (optional)</summary>
+				<div class="loc-grid">
+					<label class="st-field">Label (Arabic)<input name="labelAr" dir="rtl" /></label>
+					<label class="st-field">Label (French)<input name="labelFr" /></label>
+				</div>
+			</details>
 			<button class="st-btn">Add stop</button>
 		</form>
 	</div>
@@ -90,16 +124,40 @@
 		gap: 1.25rem;
 	}
 
-	.loc-form {
+	.stop-title {
+		margin: 0 0 0.8rem;
+		font-size: 0.78rem;
+		font-weight: 700;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		color: var(--st-muted);
+	}
+
+	.loc-grid {
 		display: grid;
 		grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
 		gap: 0 1rem;
-		align-items: end;
+	}
+
+	.translations {
+		margin: 0 0 1rem;
+	}
+
+	.translations summary {
+		cursor: pointer;
+		font-size: 0.85rem;
+		color: var(--st-accent-dark);
+		margin-bottom: 0.6rem;
 	}
 
 	.row-actions {
 		display: flex;
 		gap: 0.6rem;
-		margin-bottom: 0.9rem;
+		border-top: 1px solid var(--st-border);
+		padding-top: 1rem;
+	}
+
+	.add-card {
+		border-style: dashed;
 	}
 </style>
