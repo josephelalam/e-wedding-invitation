@@ -12,8 +12,10 @@ import type { Actions, PageServerLoad } from './$types';
 // Personalized-but-stable: each token URL is one cache entry at the edge, so
 // the WhatsApp blast never reaches D1 (spec §4.7). Language is deterministic
 // per URL (?lang or card override or event default) — never Accept-Language,
-// which CDN caches ignore for HTML.
-const CACHE_HEADER = 'public, max-age=0, s-maxage=300, stale-while-revalidate=86400';
+// which CDN caches ignore for HTML. 120s (not longer): cached HTML references
+// hashed JS chunks that stop existing after a deploy, so the window in which
+// a guest can receive HTML pointing at vanished assets must stay short.
+const CACHE_HEADER = 'public, max-age=0, s-maxage=120, stale-while-revalidate=86400';
 
 export const load: PageServerLoad = async ({ params, platform, setHeaders, url, request }) => {
 	const db = getDb(platform!.env.DB);

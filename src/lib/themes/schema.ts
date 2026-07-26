@@ -11,6 +11,12 @@ export const SECTION_IDS = [
 export type SectionId = (typeof SECTION_IDS)[number];
 export const DEFAULT_SLIDE_ORDER: readonly SectionId[] = SECTION_IDS;
 
+// The template module system: each id is a full invitation layout under
+// src/lib/templates/<id>/ sharing the same data contract. Adding a module =
+// new id here + a component in the registry.
+export const TEMPLATE_IDS = ['slides', 'edges', 'cinematic'] as const;
+export type TemplateId = (typeof TEMPLATE_IDS)[number];
+
 const hex = z.string().regex(/^#[0-9a-fA-F]{6}$/, 'expected #rrggbb');
 const localized = z.object({
 	ar: z.string().optional(),
@@ -18,8 +24,13 @@ const localized = z.object({
 	en: z.string().optional()
 });
 
+// Owner-placed R2 keys only (hard constraint #1: no upload UI; and CSP
+// img-src 'self' forbids external URLs anyway).
+const imageKey = z.string().regex(/^theme\/[A-Za-z0-9_\-./]+$/, 'expected an R2 key under theme/');
+
 export const ThemeSchema = z.object({
 	preset: z.string().min(1),
+	template: z.enum(TEMPLATE_IDS),
 	colors: z.object({ bg: hex, text: hex, accent: hex, muted: hex }),
 	// System stacks by default: $0 + CSP 'self' means no font CDN. Hosted
 	// subsets can be added under /static/fonts and referenced here.
@@ -30,13 +41,23 @@ export const ThemeSchema = z.object({
 		.refine((arr) => new Set(arr).size === arr.length, 'duplicate slide ids'),
 	musicKey: z.string().nullable(),
 	monogram: z.string().nullable(),
-	texts: z.object({ welcome: localized.optional(), closing: localized.optional() })
+	images: z.array(imageKey).max(12),
+	rsvpDeadline: z.string().nullable(),
+	texts: z.object({
+		welcome: localized.optional(),
+		closing: localized.optional(),
+		intro: localized.optional(),
+		parents: localized.optional(),
+		gifts: localized.optional(),
+		endCaption: localized.optional()
+	})
 });
 
 export type Theme = z.infer<typeof ThemeSchema>;
 
 export const DEFAULT_THEME: Theme = {
 	preset: 'classic',
+	template: 'slides',
 	colors: { bg: '#faf7f2', text: '#2d2a26', accent: '#a3785f', muted: '#8a857e' },
 	fonts: {
 		display: "Georgia, 'Palatino Linotype', 'Noto Naskh Arabic', serif",
@@ -45,6 +66,8 @@ export const DEFAULT_THEME: Theme = {
 	slideOrder: [...DEFAULT_SLIDE_ORDER],
 	musicKey: null,
 	monogram: null,
+	images: [],
+	rsvpDeadline: null,
 	texts: {}
 };
 

@@ -1,36 +1,15 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import AudioPlayer from '$lib/components/AudioPlayer.svelte';
-	import Cover from '$lib/components/sections/Cover.svelte';
-	import Hero from '$lib/components/sections/Hero.svelte';
-	import Countdown from '$lib/components/sections/Countdown.svelte';
-	import Locations from '$lib/components/sections/Locations.svelte';
-	import Schedule from '$lib/components/sections/Schedule.svelte';
-	import RsvpForm from '$lib/components/sections/RsvpForm.svelte';
-	import Closing from '$lib/components/sections/Closing.svelte';
-	import { t, dirFor, type Lang } from '$lib/i18n';
-	import type { Theme } from '$lib/themes/schema';
-	import type { RsvpView, ExtraDate, InviteLocation } from '$lib/types';
+	import { t, dirFor } from '$lib/i18n';
+	import { TEMPLATES } from '$lib/templates/registry';
+	import { resolveText, mediaUrl, rsvpClosed } from '$lib/templates/context';
+	import type { InviteData, TemplateCtx } from '$lib/templates/types';
+	import type { RsvpView } from '$lib/types';
 
-	// The whole guest experience (spec §3.1) — shared verbatim between the
-	// public token route and the owner's studio preview.
-	export type InviteData = {
-		lang: Lang;
-		languages: string[];
-		event: {
-			titleEn: string | null;
-			titleAr: string | null;
-			titleFr: string | null;
-			dateMain: string;
-			datesExtra: ExtraDate[];
-		};
-		theme: Theme;
-		locations: InviteLocation[];
-		invitation: { guestLabel: string; maxSeats: number };
-		musicUrl: string | null;
-		turnstileSiteKey: string | null;
-	};
-
+	// The dispatcher: shared guest-page plumbing (audio unlock, language
+	// switcher, RSVP hydration, localized context) around whichever template
+	// module the owner picked (spec §3.1 contract holds for every template).
 	let {
 		data,
 		token = null,
@@ -57,22 +36,9 @@
 	const currentRsvp = $derived(actionRsvp ?? fetchedRsvp);
 
 	const title = $derived.by(() => {
-		const byLang: Record<Lang, string | null> = {
-			ar: data.event.titleAr,
-			fr: data.event.titleFr,
-			en: data.event.titleEn
-		};
+		const byLang = { ar: data.event.titleAr, fr: data.event.titleFr, en: data.event.titleEn };
 		return byLang[lang] ?? data.event.titleEn ?? data.event.titleFr ?? data.event.titleAr ?? '';
 	});
-
-	const dateFull = $derived(
-		new Intl.DateTimeFormat(lang === 'ar' ? 'ar-LB-u-nu-latn' : lang, {
-			weekday: 'long',
-			day: 'numeric',
-			month: 'long',
-			year: 'numeric'
-		}).format(new Date(data.event.dateMain))
-	);
 
 	const monogram = $derived.by(() => {
 		if (data.theme.monogram) return data.theme.monogram;
@@ -84,29 +50,28 @@
 		return initials.length >= 2 ? initials.slice(0, 2).join('·') : '✦';
 	});
 
-	const slides = $derived(
-		data.theme.slideOrder.filter((section) => {
-			if (section === 'locations') return data.locations.length > 0;
-			if (section === 'schedule') return data.event.datesExtra.length > 0;
-			return true;
-		})
-	);
+	const ctx: TemplateCtx = $derived({
+		lang,
+		dir,
+		title,
+		dateFull: new Intl.DateTimeFormat(lang === 'ar' ? 'ar-LB-u-nu-latn' : lang, {
+			weekday: 'long',
+			day: 'numeric',
+			month: 'long',
+			year: 'numeric'
+		}).format(new Date(data.event.dateMain)),
+		monogram,
+		welcomeText: resolveText(data.theme.texts.welcome, lang),
+		closingText: resolveText(data.theme.texts.closing, lang) ?? t(lang, 'closing.default'),
+		introText: resolveText(data.theme.texts.intro, lang),
+		parentsText: resolveText(data.theme.texts.parents, lang),
+		giftsText: resolveText(data.theme.texts.gifts, lang),
+		endCaptionText: resolveText(data.theme.texts.endCaption, lang),
+		imageUrls: data.theme.images.map(mediaUrl),
+		rsvpIsClosed: rsvpClosed(data.theme.rsvpDeadline)
+	});
 
-	// Per-language text if provided, else whatever the owner wrote (single-input flow)
-	const welcomeText = $derived(
-		data.theme.texts.welcome?.[lang] ??
-			data.theme.texts.welcome?.en ??
-			data.theme.texts.welcome?.fr ??
-			data.theme.texts.welcome?.ar ??
-			null
-	);
-	const closingText = $derived(
-		data.theme.texts.closing?.[lang] ??
-			data.theme.texts.closing?.en ??
-			data.theme.texts.closing?.fr ??
-			data.theme.texts.closing?.ar ??
-			t(lang, 'closing.default')
-	);
+	const Template = $derived((TEMPLATES[data.theme.template] ?? TEMPLATES.slides).component);
 
 	async function open() {
 		opened = true;
@@ -150,56 +115,7 @@
 		unmuteLabel={t(lang, 'audio.unmute')}
 	/>
 
-	<div class="scroller" class:locked={!opened}>
-		<Cover
-			{title}
-			dateText={dateFull}
-			greeting={t(lang, 'cover.dear', { name: data.invitation.guestLabel })}
-			openLabel={t(lang, 'cover.open')}
-			{monogram}
-			{opened}
-			onopen={open}
-		/>
-
-		{#each slides as section, index (section)}
-			<section class="slide" id="slide-{index}" data-section={section}>
-				{#if section === 'hero'}
-					<Hero {title} welcome={welcomeText} {dateFull} />
-				{:else if section === 'countdown'}
-					<Countdown targetIso={data.event.dateMain} {lang} />
-				{:else if section === 'locations'}
-					<Locations locations={data.locations} {lang} />
-				{:else if section === 'schedule'}
-					<Schedule datesExtra={data.event.datesExtra} {lang} />
-				{:else if section === 'rsvp'}
-					{#if preview}
-						<div class="preview-rsvp">
-							<RsvpForm
-								maxSeats={data.invitation.maxSeats}
-								{lang}
-								turnstileSiteKey={null}
-								current={null}
-								errorKey={null}
-							/>
-						</div>
-					{:else}
-						<RsvpForm
-							maxSeats={data.invitation.maxSeats}
-							{lang}
-							turnstileSiteKey={data.turnstileSiteKey}
-							current={currentRsvp}
-							{errorKey}
-						/>
-					{/if}
-				{:else if section === 'closing'}
-					<Closing text={closingText} {monogram} />
-				{/if}
-				{#if index === 0 && opened}
-					<div class="more" aria-hidden="true">⌄</div>
-				{/if}
-			</section>
-		{/each}
-	</div>
+	<Template {data} {ctx} {currentRsvp} {errorKey} {preview} {opened} onopen={open} />
 </main>
 
 <style>
@@ -208,58 +124,6 @@
 		color: var(--ei-text);
 		font-family: var(--ei-font-body);
 		line-height: 1.6;
-	}
-
-	.scroller {
-		height: 100dvh;
-		overflow-y: auto;
-		scroll-snap-type: y mandatory;
-		overscroll-behavior-y: contain;
-	}
-
-	.scroller.locked {
-		overflow: hidden;
-	}
-
-	/* Every slide carries the card frame — the invitation's recurring signature. */
-	.invite :global(.slide) {
-		position: relative;
-		min-height: 100dvh;
-		display: grid;
-		place-items: center;
-		padding: 3.2rem 1.7rem;
-		scroll-snap-align: start;
-		scroll-snap-stop: always;
-	}
-
-	.invite :global(.slide)::before {
-		content: '';
-		position: absolute;
-		inset: 12px;
-		border: 1px solid color-mix(in srgb, var(--ei-accent) 55%, transparent);
-		pointer-events: none;
-	}
-
-	.invite :global(.slide)::after {
-		content: '';
-		position: absolute;
-		inset: 17px;
-		border: 1px solid color-mix(in srgb, var(--ei-accent) 22%, transparent);
-		pointer-events: none;
-	}
-
-	/* Entrance reveal (class applied only when JS runs — see inview action) */
-	.invite :global(.reveal) {
-		opacity: 0;
-		transform: translateY(16px);
-		transition:
-			opacity 0.7s ease,
-			transform 0.7s ease;
-	}
-
-	.invite :global(.reveal.in-view) {
-		opacity: 1;
-		transform: none;
 	}
 
 	.langs {
@@ -280,36 +144,18 @@
 		border-bottom: 1px solid color-mix(in srgb, var(--ei-muted) 40%, transparent);
 	}
 
-	.preview-rsvp {
-		pointer-events: none;
-		opacity: 0.85;
+	/* Entrance reveal shared by all templates (class applied only when JS
+	   runs — see the inview action; no-JS guests always see content) */
+	.invite :global(.reveal) {
+		opacity: 0;
+		transform: translateY(16px);
+		transition:
+			opacity 0.7s ease,
+			transform 0.7s ease;
 	}
 
-	.more {
-		position: absolute;
-		inset-block-end: 1.9rem;
-		inset-inline: 0;
-		text-align: center;
-		color: var(--ei-accent);
-		font-size: 1.3rem;
-		animation: drift 2.4s ease-in-out infinite;
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		.more {
-			animation: none;
-		}
-	}
-
-	@keyframes drift {
-		0%,
-		100% {
-			transform: translateY(0);
-			opacity: 0.55;
-		}
-		50% {
-			transform: translateY(6px);
-			opacity: 1;
-		}
+	.invite :global(.reveal.in-view) {
+		opacity: 1;
+		transform: none;
 	}
 </style>

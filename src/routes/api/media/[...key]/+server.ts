@@ -1,12 +1,14 @@
 import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
-// Streams the event's music track from R2 through the Worker with immutable
-// caching (spec §3.1.5). Only the audio/ prefix is reachable: the same bucket
-// also holds nightly backups, which must never be publicly addressable.
+// Streams media from R2 through the Worker with immutable caching (spec
+// §3.1.5): audio/ (music tracks) and theme/ (owner-placed template imagery,
+// hard constraint #1 — no upload UI). backups/ must never be publicly
+// addressable.
 export const GET: RequestHandler = async ({ params, platform, request }) => {
 	const key = params.key;
-	if (!key.startsWith('audio/') || key.includes('..')) throw error(404, 'not found');
+	const allowed = key.startsWith('audio/') || key.startsWith('theme/');
+	if (!allowed || key.includes('..')) throw error(404, 'not found');
 	const bucket = platform?.env?.MEDIA;
 	if (!bucket) throw error(404, 'not found');
 
@@ -45,7 +47,9 @@ export const GET: RequestHandler = async ({ params, platform, request }) => {
 				status: 206,
 				headers: {
 					...baseHeaders,
-					'content-type': object.httpMetadata?.contentType ?? 'audio/mpeg',
+					'content-type':
+						object.httpMetadata?.contentType ??
+						(key.startsWith('theme/') ? 'image/jpeg' : 'audio/mpeg'),
 					'content-length': String(end - start + 1),
 					'content-range': `bytes ${start}-${end}/${size}`,
 					etag: object.httpEtag
@@ -59,7 +63,9 @@ export const GET: RequestHandler = async ({ params, platform, request }) => {
 	return new Response(object.body, {
 		headers: {
 			...baseHeaders,
-			'content-type': object.httpMetadata?.contentType ?? 'audio/mpeg',
+			'content-type':
+				object.httpMetadata?.contentType ??
+				(key.startsWith('theme/') ? 'image/jpeg' : 'audio/mpeg'),
 			'content-length': String(object.size),
 			etag: object.httpEtag
 		}

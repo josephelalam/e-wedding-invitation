@@ -6,6 +6,10 @@
 
 	const theme = $derived(data.theme);
 	let previewNonce = $state(0);
+	// bind:group-controlled — a plain checked= would be reverted by re-renders
+	// svelte-ignore state_referenced_locally -- intentional: form state seeded once from load data
+	let selectedTemplate = $state(data.theme.template as string);
+	const activeTemplate = $derived(selectedTemplate);
 
 	const SECTION_LABELS: Record<string, string> = {
 		hero: 'Names & welcome',
@@ -15,6 +19,15 @@
 		rsvp: 'RSVP',
 		closing: 'Closing'
 	};
+
+	const TEXT_GROUPS: [string, string, string][] = [
+		['welcome', 'Welcome line', 'Shown under the names'],
+		['closing', 'Closing message', 'The goodbye at the end'],
+		['intro', 'Opening verse / quote', 'Story templates: shown before the names'],
+		['parents', 'Parents line', 'e.g. "Mr. & Mrs. Karam · Mr. & Mrs. Aoun" (line breaks kept)'],
+		['gifts', 'Gifts note', 'Shown in its own section when filled (wedding list, numbers…)'],
+		['endCaption', 'Ending caption', 'Story templates: under the last photo']
+	];
 </script>
 
 <svelte:head><title>Theme — EInvite Studio</title></svelte:head>
@@ -34,8 +47,20 @@
 					previewNonce++;
 				}}
 		>
+			<fieldset class="tpl-picker">
+				<legend>Layout template</legend>
+				{#each data.templates as tpl (tpl.id)}
+					<label class="tpl" class:active={activeTemplate === tpl.id}>
+						<input type="radio" name="template" value={tpl.id} bind:group={selectedTemplate} />
+						<span class="tpl-name">{tpl.name}</span>
+						<span class="tpl-tag">{tpl.tagline}</span>
+						{#if tpl.usesImages}<span class="tpl-imgs">uses photos</span>{/if}
+					</label>
+				{/each}
+			</fieldset>
+
 			<div class="preset-row">
-				<span class="st-sub" style="margin:0">Start from a preset:</span>
+				<span class="st-sub" style="margin:0">Colors from a preset:</span>
 				{#each data.presetNames as name (name)}
 					<button class="st-btn secondary" name="applyPreset" value={name}>{name}</button>
 				{/each}
@@ -73,33 +98,63 @@
 					maxlength="6"
 				/></label
 			>
+			<label class="st-field"
+				>RSVP deadline (optional — form closes after this day)
+				<input name="rsvpDeadline" type="date" value={theme.rsvpDeadline ?? ''} />
+			</label>
 
-			<fieldset class="slides">
-				<legend>Slides &amp; order</legend>
+			<label class="st-field"
+				>Photos (one R2 key per line — used by the photo templates)
+				<textarea name="images" rows="3" placeholder={'theme/' + data.event.slug + '/1.jpg'}
+					>{theme.images.join('\n')}</textarea
+				>
+			</label>
+			<p class="hint">
+				Photos are placed manually (your no-upload rule): <code class="st-code"
+					>npx wrangler r2 object put einvite-media/theme/{data.event.slug}/1.jpg --file photo.jpg
+					--remote</code
+				>
+			</p>
+
+			{#if activeTemplate === 'slides'}
+				<fieldset class="slides">
+					<legend>Slides &amp; order (Envelope template)</legend>
+					{#each SECTION_IDS as section (section)}
+						{@const enabled = theme.slideOrder.includes(section)}
+						{@const order = theme.slideOrder.indexOf(section)}
+						<div class="slide-row">
+							<label>
+								<input type="checkbox" name="slide-{section}" checked={enabled} />
+								{SECTION_LABELS[section]}
+							</label>
+							<input
+								type="number"
+								name="order-{section}"
+								min="1"
+								max="6"
+								value={enabled ? order + 1 : SECTION_IDS.indexOf(section) + 1}
+								aria-label="Order of {SECTION_LABELS[section]}"
+							/>
+						</div>
+					{/each}
+				</fieldset>
+			{:else}
 				{#each SECTION_IDS as section (section)}
 					{@const enabled = theme.slideOrder.includes(section)}
-					{@const order = theme.slideOrder.indexOf(section)}
-					<div class="slide-row">
-						<label>
-							<input type="checkbox" name="slide-{section}" checked={enabled} />
-							{SECTION_LABELS[section]}
-						</label>
-						<input
-							type="number"
-							name="order-{section}"
-							min="1"
-							max="6"
-							value={enabled ? order + 1 : SECTION_IDS.indexOf(section) + 1}
-							aria-label="Order of {SECTION_LABELS[section]}"
-						/>
-					</div>
+					<input type="hidden" name="slide-{section}" value={enabled ? 'on' : ''} />
+					<input
+						type="hidden"
+						name="order-{section}"
+						value={(enabled ? theme.slideOrder.indexOf(section) : SECTION_IDS.indexOf(section)) + 1}
+					/>
 				{/each}
-			</fieldset>
+			{/if}
 
-			{#each [['welcome', 'Welcome line (hero slide)'], ['closing', 'Closing message']] as [kind, label] (kind)}
+			{#each TEXT_GROUPS as [kind, label, hint] (kind)}
 				{@const current = (theme.texts as Record<string, Record<string, string>>)[kind]}
 				<fieldset class="texts">
 					<legend>{label}</legend>
+					<p class="hint" style="margin-top:0">{hint}</p>
 					{#each [['en', 'English'], ['ar', 'Arabic'], ['fr', 'French']] as [code, name] (code)}
 						<label class="st-field"
 							>{name}
@@ -138,6 +193,57 @@
 		}
 	}
 
+	.tpl-picker {
+		border: 1px solid var(--st-border);
+		border-radius: 8px;
+		padding: 0.8rem 1rem;
+		margin: 0 0 1.1rem;
+		display: grid;
+		gap: 0.6rem;
+	}
+
+	.tpl-picker legend {
+		font-size: 0.78rem;
+		font-weight: 600;
+		color: var(--st-muted);
+		padding-inline: 0.3rem;
+	}
+
+	.tpl {
+		display: grid;
+		grid-template-columns: auto 1fr auto;
+		gap: 0.25rem 0.6rem;
+		align-items: center;
+		border: 1px solid var(--st-border);
+		border-radius: 8px;
+		padding: 0.6rem 0.8rem;
+		cursor: pointer;
+	}
+
+	.tpl.active {
+		border-color: var(--st-accent);
+		background: color-mix(in srgb, var(--st-accent) 8%, transparent);
+	}
+
+	.tpl-name {
+		font-weight: 600;
+	}
+
+	.tpl-tag {
+		grid-column: 2 / 4;
+		font-size: 0.8rem;
+		color: var(--st-muted);
+	}
+
+	.tpl-imgs {
+		font-size: 0.68rem;
+		letter-spacing: 0.05em;
+		background: #efeae2;
+		color: var(--st-muted);
+		border-radius: 5px;
+		padding: 0.15rem 0.45rem;
+	}
+
 	.preset-row {
 		display: flex;
 		align-items: center;
@@ -161,14 +267,16 @@
 		background: #fff;
 	}
 
-	.slides {
+	.slides,
+	.texts {
 		border: 1px solid var(--st-border);
 		border-radius: 8px;
 		padding: 0.8rem 1rem;
 		margin: 0 0 1rem;
 	}
 
-	.slides legend {
+	.slides legend,
+	.texts legend {
 		font-size: 0.78rem;
 		font-weight: 600;
 		color: var(--st-muted);
@@ -191,25 +299,18 @@
 		border-radius: 6px;
 	}
 
+	.hint {
+		font-size: 0.78rem;
+		color: var(--st-muted);
+		margin: -0.4rem 0 1rem;
+		line-height: 1.6;
+	}
+
 	.preview-card iframe {
 		width: 100%;
 		aspect-ratio: 9 / 17;
 		max-height: 44rem;
 		border: 1px solid var(--st-border);
 		border-radius: 18px;
-	}
-
-	.texts {
-		border: 1px solid var(--st-border);
-		border-radius: 8px;
-		padding: 0.8rem 1rem;
-		margin: 0 0 1rem;
-	}
-
-	.texts legend {
-		font-size: 0.78rem;
-		font-weight: 600;
-		color: var(--st-muted);
-		padding-inline: 0.3rem;
 	}
 </style>

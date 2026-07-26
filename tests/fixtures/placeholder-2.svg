@@ -1,0 +1,13 @@
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 2000'>
+  <defs>
+    <radialGradient id='g' cx='38%' cy='30%' r='85%'>
+      <stop offset='0%' stop-color='#d9e2cf'/>
+      <stop offset='55%' stop-color='#7d8c74'/>
+      <stop offset='100%' stop-color='#5c6b54'/>
+    </radialGradient>
+  </defs>
+  <rect width='1600' height='2000' fill='url(#g)'/>
+  <circle cx='1200' cy='420' r='340' fill='#d9e2cf' opacity='0.25'/>
+  <circle cx='300' cy='1550' r='420' fill='#5c6b54' opacity='0.25'/>
+  <text x='800' y='1030' text-anchor='middle' font-family='Georgia,serif' font-size='72' fill='rgba(255,255,255,0.55)' font-style='italic'>photo 2</text>
+</svg>

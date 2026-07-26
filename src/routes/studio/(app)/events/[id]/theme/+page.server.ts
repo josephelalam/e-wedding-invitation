@@ -1,9 +1,12 @@
 import { fail } from '@sveltejs/kit';
 import { getDb } from '$lib/server/db';
 import { updateEvent } from '$lib/server/services/events';
-import { parseTheme, SECTION_IDS, type SectionId } from '$lib/themes/schema';
+import { parseTheme, SECTION_IDS, TEMPLATE_IDS, type SectionId } from '$lib/themes/schema';
 import { presets } from '$lib/themes/presets';
+import { TEMPLATES } from '$lib/templates/registry';
 import type { Actions, PageServerLoad } from './$types';
+
+const TEXT_KINDS = ['welcome', 'closing', 'intro', 'parents', 'gifts', 'endCaption'] as const;
 
 export const load: PageServerLoad = async ({ parent }) => {
 	const { event } = await parent();
@@ -13,7 +16,16 @@ export const load: PageServerLoad = async ({ parent }) => {
 	} catch {
 		theme = parseTheme({});
 	}
-	return { theme, presetNames: Object.keys(presets) };
+	return {
+		theme,
+		presetNames: Object.keys(presets),
+		templates: Object.values(TEMPLATES).map(({ id, name, tagline, usesImages }) => ({
+			id,
+			name,
+			tagline,
+			usesImages
+		}))
+	};
 };
 
 export const actions: Actions = {
@@ -24,12 +36,15 @@ export const actions: Actions = {
 		const applyPreset = String(form.get('applyPreset') ?? '');
 		let theme;
 		if (applyPreset && presets[applyPreset]) {
-			// Preset click: replace look, keep the event's music + texts
+			// Preset click: replace the look, keep the event's own content
 			const current = parseTheme(JSON.parse(String(form.get('currentTheme') ?? '{}')));
 			theme = {
 				...presets[applyPreset],
+				template: current.template,
 				musicKey: current.musicKey,
 				monogram: current.monogram,
+				images: current.images,
+				rsvpDeadline: current.rsvpDeadline,
 				texts: current.texts
 			};
 		} else {
@@ -44,7 +59,7 @@ export const actions: Actions = {
 
 			// Per-language texts; missing languages fall back to whichever is filled
 			const texts: Record<string, Record<string, string>> = {};
-			for (const kind of ['welcome', 'closing'] as const) {
+			for (const kind of TEXT_KINDS) {
 				for (const code of ['en', 'ar', 'fr'] as const) {
 					const value = String(form.get(`${kind}-${code}`) ?? '').trim();
 					if (value) {
@@ -54,8 +69,17 @@ export const actions: Actions = {
 				}
 			}
 
+			const templateRaw = String(form.get('template') ?? 'slides');
+			const images = String(form.get('images') ?? '')
+				.split('\n')
+				.map((line) => line.trim())
+				.filter(Boolean);
+
 			theme = {
 				preset: String(form.get('preset') ?? 'custom') || 'custom',
+				template: (TEMPLATE_IDS as readonly string[]).includes(templateRaw)
+					? templateRaw
+					: 'slides',
 				colors: {
 					bg: String(form.get('bg') ?? ''),
 					text: String(form.get('text') ?? ''),
@@ -69,6 +93,8 @@ export const actions: Actions = {
 				slideOrder: ordered,
 				musicKey: String(form.get('musicKey') ?? '') || null,
 				monogram: String(form.get('monogram') ?? '').trim() || null,
+				images,
+				rsvpDeadline: String(form.get('rsvpDeadline') ?? '').trim() || null,
 				texts
 			};
 		}
@@ -76,7 +102,8 @@ export const actions: Actions = {
 		const result = await updateEvent(db, params.id, { theme }, `owner:${locals.user!.id}`);
 		if (!result.ok) {
 			return fail(400, {
-				error: 'Theme rejected — colors must be #rrggbb and at least one slide must stay enabled.'
+				error:
+					'Theme rejected — colors must be #rrggbb, at least one slide must stay enabled, and image keys must look like theme/<event>/<file> (placed with wrangler, no upload).'
 			});
 		}
 		return { saved: true };

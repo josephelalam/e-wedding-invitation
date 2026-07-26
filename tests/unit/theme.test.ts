@@ -57,6 +57,45 @@ describe('parseTheme', () => {
 	});
 });
 
+describe('template module system', () => {
+	it('defaults existing/old themes to the slides template', () => {
+		expect(parseTheme({}).template).toBe('slides');
+		expect(parseTheme({ colors: { accent: '#ff0000' } }).template).toBe('slides');
+	});
+
+	it('accepts every registered template id and rejects unknown ones', () => {
+		expect(parseTheme({ template: 'edges' }).template).toBe('edges');
+		expect(parseTheme({ template: 'cinematic' }).template).toBe('cinematic');
+		expect(() => parseTheme({ template: 'tiktok' })).toThrow();
+	});
+
+	it('carries owner-placed image keys (no upload UI — hard constraint #1)', () => {
+		const theme = parseTheme({ images: ['theme/ev1/1.jpg', 'theme/ev1/2.jpg'] });
+		expect(theme.images).toEqual(['theme/ev1/1.jpg', 'theme/ev1/2.jpg']);
+		expect(parseTheme({}).images).toEqual([]);
+	});
+
+	it('rejects non-R2-key image entries (absolute URLs would break CSP)', () => {
+		expect(() => parseTheme({ images: ['https://evil.example/x.jpg'] })).toThrow();
+	});
+
+	it('carries the extended template texts and rsvp deadline', () => {
+		const theme = parseTheme({
+			rsvpDeadline: '2026-09-01',
+			texts: {
+				intro: { ar: 'إِذًا لَيْسَا بَعْدُ اثْنَيْنِ' },
+				parents: { en: 'Mr. & Mrs. Karam · Mr. & Mrs. Aoun' },
+				gifts: { en: 'Your presence is the greatest gift.' },
+				endCaption: { ar: 'و ابتدا المشوار...' }
+			}
+		});
+		expect(theme.rsvpDeadline).toBe('2026-09-01');
+		expect(theme.texts.intro?.ar).toContain('اثْنَيْنِ');
+		expect(theme.texts.endCaption?.ar).toBe('و ابتدا المشوار...');
+		expect(parseTheme({}).rsvpDeadline).toBeNull();
+	});
+});
+
 describe('presets', () => {
 	it('ships classic and midnight, both valid', () => {
 		expect(Object.keys(presets)).toEqual(expect.arrayContaining(['classic', 'midnight']));

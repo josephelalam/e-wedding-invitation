@@ -3,11 +3,15 @@
  * stable across runs. Applied on top of migrations by `npm run e2e:server`.
  */
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { E2E } from './fixtures-e2e.ts';
 import { pbkdf2Hash } from '../../src/lib/server/crypto.ts';
+
+// wrangler's local Cache API persists on disk and outlives rebuilds/restarts;
+// stale cached HTML references hashed chunks that no longer exist.
+rmSync('.wrangler/state/v3/cache', { recursive: true, force: true });
 
 const q = (value: string) => `'${value.replaceAll("'", "''")}'`;
 const now = new Date().toISOString();
@@ -33,12 +37,43 @@ VALUES (${q(id)}, ${q(slug)}, 'wedding', ${q(title)}, ${q('نور وليا')}, $
 const ownerHash = await pbkdf2Hash(E2E.owner.password);
 const nowMs = Date.now();
 
+const edgesTheme = {
+	preset: 'classic',
+	template: 'edges',
+	monogram: 'R·T',
+	images: ['theme/e2e/1.svg', 'theme/e2e/2.svg', 'theme/e2e/3.svg'],
+	texts: {
+		intro: { en: 'Therefore what God has joined together, let no one separate.' },
+		parents: { en: 'Mr. & Mrs. Karam\nMr. & Mrs. Aoun' },
+		gifts: { en: 'Your presence is our greatest gift.\nWedding list: 03 123 456' },
+		endCaption: { en: 'And so the adventure begins…' }
+	}
+};
+
+const cineTheme = {
+	preset: 'midnight',
+	template: 'cinematic',
+	colors: { bg: '#141221', text: '#f4efe9', accent: '#d4af6a', muted: '#8d89a3' },
+	images: ['theme/e2e/1.svg', 'theme/e2e/2.svg'],
+	texts: { intro: { en: 'Two stories becoming one.' } }
+};
+
 const statements = [
 	// Deterministic test state: clear rate-limit windows and stale outbox links
 	// accumulated by earlier local runs (the per-token RSVP limit is 10/hour).
 	`DELETE FROM rate_limits;`,
 	`DELETE FROM outbox;`,
-	`DELETE FROM events WHERE slug IN (${q(E2E.slug)}, ${q(E2E.otherSlug)});`,
+	`DELETE FROM events WHERE slug IN (${q(E2E.slug)}, ${q(E2E.otherSlug)}, ${q(E2E.edgesSlug)}, ${q(E2E.cineSlug)});`,
+	`INSERT INTO events (id, slug, type, title_en, title_ar, title_fr, date_main, dates_extra, theme, languages, status, payment_status, retention_months, created_at, updated_at)
+VALUES (${q(E2E.edgesEventId)}, ${q(E2E.edgesSlug)}, 'wedding', 'Rita & Tony', ${q('ريتا وطوني')}, 'Rita & Tony',
+ '2027-08-14T17:00', '[]', ${q(JSON.stringify(edgesTheme))}, '["en","ar"]', 'live', 'pending', 6, ${q(now)}, ${q(now)}),
+ (${q(E2E.cineEventId)}, ${q(E2E.cineSlug)}, 'wedding', 'Nour & Omar', ${q('نور وعمر')}, 'Nour & Omar',
+ '2027-09-18T18:00', '[]', ${q(JSON.stringify(cineTheme))}, '["en","fr"]', 'live', 'pending', 6, ${q(now)}, ${q(now)});`,
+	`INSERT INTO locations (id, event_id, kind, label_en, maps_url, starts_at, sort) VALUES
+ ('loc_e2e_edges1', ${q(E2E.edgesEventId)}, 'ceremony', 'Edges Chapel', 'https://maps.app.goo.gl/edges1', '2027-08-14T17:00', 1);`,
+	`INSERT INTO invitations (id, event_id, token, guest_label, max_seats, phone, lang, group_tag, revoked, created_at) VALUES
+ ('inv_e2e_edges', ${q(E2E.edgesEventId)}, ${q(E2E.tokens.edges)}, 'Fadi & Nadine', 2, NULL, 'en', NULL, 0, ${q(now)}),
+ ('inv_e2e_cine', ${q(E2E.cineEventId)}, ${q(E2E.tokens.cine)}, 'Sara', 1, NULL, 'en', NULL, 0, ${q(now)});`,
 	`DELETE FROM user WHERE email IN (${q(E2E.owner.email)}, ${q(E2E.couple.email)});`,
 	`INSERT INTO user (id, name, email, email_verified, role, two_factor_enabled, created_at, updated_at) VALUES
  ('usr_e2e_owner', ${q(E2E.owner.name)}, ${q(E2E.owner.email)}, 1, 'owner', 0, ${nowMs}, ${nowMs}),
@@ -80,4 +115,18 @@ wrangler([
 	'audio/wav',
 	'--local'
 ]);
+console.log('· uploading placeholder photos for the photo templates');
+for (const index of [1, 2, 3]) {
+	wrangler([
+		'r2',
+		'object',
+		'put',
+		`einvite-media/theme/e2e/${index}.svg`,
+		'--file',
+		`tests/fixtures/placeholder-${index}.svg`,
+		'--content-type',
+		'image/svg+xml',
+		'--local'
+	]);
+}
 console.log('e2e fixtures ready');

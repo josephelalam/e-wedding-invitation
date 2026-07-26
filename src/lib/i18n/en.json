@@ -40,7 +40,8 @@
 		"success_no": "Thank you for letting us know. You'll be missed!",
 		"answered_on": "Answered on {date}",
 		"change_hint": "You can change your answer anytime from this link.",
-		"privacy": "These details are used only to organise the event and are deleted afterwards."
+		"privacy": "These details are used only to organise the event and are deleted afterwards.",
+		"closed": "The RSVP period has closed — contact your hosts for changes."
 	},
 	"errors": {
 		"invalid": "This invitation isn't valid.",
@@ -107,5 +108,8 @@
 			"declined": "Declined",
 			"pending": "Pending"
 		}
+	},
+	"gifts": {
+		"title": "Gifts"
 	}
 }

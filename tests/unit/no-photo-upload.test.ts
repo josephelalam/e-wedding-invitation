@@ -35,10 +35,14 @@ describe('hard constraint #1 — no photo uploading', () => {
 		expect(inputTag?.[0]).toContain('accept="audio/*"');
 	});
 
-	it('no image upload pipeline exists server-side', () => {
+	it('no server code accepts image uploads (serving owner-placed images is spec-allowed §4.9)', () => {
 		for (const path of walk(SRC).filter((p) => p.endsWith('.ts'))) {
 			const source = readFileSync(path, 'utf8');
-			expect(source.includes("'image/"), `${path} must not accept image uploads`).toBe(false);
+			const handlesUploads = source.includes('.formData()') && source.includes('instanceof File');
+			if (handlesUploads) {
+				expect(source.includes("'image/"), `${path} must not accept image uploads`).toBe(false);
+				expect(/accept.*image/i.test(source), `${path} must not accept image uploads`).toBe(false);
+			}
 		}
 	});
 });
