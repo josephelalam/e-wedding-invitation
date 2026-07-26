@@ -7,6 +7,9 @@
 	"triggers": {
 		"crons": ["0 2 * * *"]
 	},
+	"vars": {
+		"ORIGIN": "https://einvite.einvite.workers.dev"
+	},
 	"assets": {
 		"binding": "ASSETS",
 		"directory": ".svelte-kit/cloudflare"
@@ -17,7 +20,7 @@
 		{
 			"binding": "DB",
 			"database_name": "einvite-db",
-			"database_id": "00000000-0000-0000-0000-000000000000",
+			"database_id": "94916ac6-a0c2-450b-ac83-bc76baf45ec7",
 			"migrations_dir": "drizzle"
 		}
 	],
