@@ -1,0 +1,101 @@
+{
+	"cover": {
+		"dear": "For {name}",
+		"open": "Open Invitation"
+	},
+	"countdown": {
+		"title": "Counting down to the big day",
+		"days": "days",
+		"hours": "hours",
+		"minutes": "minutes",
+		"seconds": "seconds",
+		"today": "The day is here!"
+	},
+	"locations": {
+		"title": "Where to find us",
+		"open_maps": "Open in Google Maps",
+		"kind": {
+			"house_groom": "Groom's house",
+			"house_bride": "Bride's house",
+			"ceremony": "Ceremony",
+			"reception": "Reception",
+			"other": "Venue"
+		}
+	},
+	"schedule": {
+		"title": "The day's programme"
+	},
+	"rsvp": {
+		"title": "RSVP",
+		"question": "Will you join us?",
+		"yes": "Yes, with joy",
+		"no": "We can't make it",
+		"seats_label": "Number of guests",
+		"seats_of": "of {max} seats",
+		"note_label": "A little note (optional)",
+		"note_placeholder": "A word for the couple…",
+		"submit": "Send answer",
+		"submitting": "Sending…",
+		"success_yes": "Wonderful — we can't wait to see you!",
+		"success_no": "Thank you for letting us know. You'll be missed!",
+		"answered_on": "Answered on {date}",
+		"change_hint": "You can change your answer anytime from this link.",
+		"privacy": "These details are used only to organise the event and are deleted afterwards."
+	},
+	"errors": {
+		"invalid": "This invitation isn't valid.",
+		"seats": "That number exceeds the seats reserved for your card.",
+		"rate_limited": "Too many attempts — please try again shortly.",
+		"turnstile": "We couldn't verify you're human. Please try again.",
+		"generic": "Something went wrong. Please try again."
+	},
+	"audio": {
+		"mute": "Mute music",
+		"unmute": "Play music"
+	},
+	"invalid": {
+		"title": "Invitation not found",
+		"body": "This link is incorrect or no longer active. Please contact your hosts."
+	},
+	"closing": {
+		"default": "With all our love — see you there"
+	},
+	"dash": {
+		"title": "RSVP dashboard",
+		"logout": "Sign out",
+		"export": "Download CSV",
+		"search": "Search guests…",
+		"login": {
+			"title": "Couple sign-in",
+			"email": "Email address",
+			"send": "Send me a sign-in link",
+			"sent": "Your sign-in link is on its way — check your messages.",
+			"no_email": "No email set up? Ask your host to send you a sign-in link."
+		},
+		"stats": {
+			"cards": "Invitations",
+			"confirmed": "Confirmed",
+			"declined": "Declined",
+			"pending": "Awaiting reply",
+			"seats": "Seats confirmed"
+		},
+		"table": {
+			"guest": "Guest",
+			"seats": "Seats",
+			"status": "Status",
+			"note": "Note",
+			"answered": "Answered"
+		},
+		"filter": {
+			"all": "All",
+			"confirmed": "Confirmed",
+			"declined": "Declined",
+			"pending": "Pending"
+		},
+		"status": {
+			"confirmed": "Confirmed",
+			"declined": "Declined",
+			"pending": "Pending"
+		}
+	}
+}

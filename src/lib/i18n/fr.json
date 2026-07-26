@@ -1,0 +1,101 @@
+{
+	"cover": {
+		"dear": "Pour {name}",
+		"open": "Ouvrir l'invitation"
+	},
+	"countdown": {
+		"title": "Compte à rebours avant le grand jour",
+		"days": "jours",
+		"hours": "heures",
+		"minutes": "minutes",
+		"seconds": "secondes",
+		"today": "Le grand jour est arrivé !"
+	},
+	"locations": {
+		"title": "Les lieux",
+		"open_maps": "Ouvrir dans Google Maps",
+		"kind": {
+			"house_groom": "Maison du marié",
+			"house_bride": "Maison de la mariée",
+			"ceremony": "Cérémonie",
+			"reception": "Réception",
+			"other": "Lieu"
+		}
+	},
+	"schedule": {
+		"title": "Programme de la journée"
+	},
+	"rsvp": {
+		"title": "Confirmez votre présence",
+		"question": "Serez-vous des nôtres ?",
+		"yes": "Oui, avec joie",
+		"no": "Nous ne pourrons pas venir",
+		"seats_label": "Nombre de personnes",
+		"seats_of": "sur {max} places",
+		"note_label": "Un petit mot (facultatif)",
+		"note_placeholder": "Un mot pour les mariés…",
+		"submit": "Envoyer la réponse",
+		"submitting": "Envoi en cours…",
+		"success_yes": "Quelle joie — à très bientôt !",
+		"success_no": "Merci de nous avoir prévenus. Vous nous manquerez !",
+		"answered_on": "Répondu le {date}",
+		"change_hint": "Vous pouvez modifier votre réponse à tout moment depuis ce lien.",
+		"privacy": "Ces informations servent uniquement à l'organisation de l'événement et seront supprimées ensuite."
+	},
+	"errors": {
+		"invalid": "Cette invitation n'est pas valide.",
+		"seats": "Ce nombre dépasse les places réservées à votre carte.",
+		"rate_limited": "Trop de tentatives — réessayez dans un instant.",
+		"turnstile": "Vérification impossible. Veuillez réessayer.",
+		"generic": "Une erreur est survenue. Veuillez réessayer."
+	},
+	"audio": {
+		"mute": "Couper la musique",
+		"unmute": "Remettre la musique"
+	},
+	"invalid": {
+		"title": "Invitation introuvable",
+		"body": "Ce lien est incorrect ou n'est plus actif. Contactez vos hôtes."
+	},
+	"closing": {
+		"default": "Avec tout notre amour — à bientôt"
+	},
+	"dash": {
+		"title": "Tableau des réponses",
+		"logout": "Se déconnecter",
+		"export": "Télécharger le CSV",
+		"search": "Rechercher un invité…",
+		"login": {
+			"title": "Connexion des mariés",
+			"email": "Adresse e-mail",
+			"send": "Recevoir mon lien de connexion",
+			"sent": "Votre lien de connexion est en route — vérifiez vos messages.",
+			"no_email": "Pas d'e-mail configuré ? Demandez votre lien de connexion à votre hôte."
+		},
+		"stats": {
+			"cards": "Invitations",
+			"confirmed": "Confirmés",
+			"declined": "Excusés",
+			"pending": "En attente",
+			"seats": "Places confirmées"
+		},
+		"table": {
+			"guest": "Invité",
+			"seats": "Places",
+			"status": "Statut",
+			"note": "Note",
+			"answered": "Répondu"
+		},
+		"filter": {
+			"all": "Tous",
+			"confirmed": "Confirmés",
+			"declined": "Excusés",
+			"pending": "En attente"
+		},
+		"status": {
+			"confirmed": "Confirmé",
+			"declined": "Excusé",
+			"pending": "En attente"
+		}
+	}
+}
