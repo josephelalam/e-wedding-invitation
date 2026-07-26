@@ -1,4 +1,12 @@
-import { sqliteTable, text, integer, real, index, check } from 'drizzle-orm/sqlite-core';
+import {
+	sqliteTable,
+	text,
+	integer,
+	real,
+	index,
+	check,
+	primaryKey
+} from 'drizzle-orm/sqlite-core';
 import { sql } from 'drizzle-orm';
 
 // Spec §5 — event-agnostic model: `events`, not `weddings`; locations are an
@@ -129,3 +137,19 @@ export const rateLimits = sqliteTable('rate_limits', {
 });
 
 export * from './auth.schema';
+
+import { user } from './auth.schema';
+
+/** Couple accounts are scoped to their event(s) — tenant isolation (spec §7.2). */
+export const couples = sqliteTable(
+	'couples',
+	{
+		userId: text('user_id')
+			.notNull()
+			.references(() => user.id, { onDelete: 'cascade' }),
+		eventId: text('event_id')
+			.notNull()
+			.references(() => events.id, { onDelete: 'cascade' })
+	},
+	(t) => [primaryKey({ columns: [t.userId, t.eventId] })]
+);

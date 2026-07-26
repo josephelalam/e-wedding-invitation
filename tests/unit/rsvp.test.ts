@@ -18,7 +18,12 @@ describe('submitRsvp', () => {
 	});
 
 	it('accepts an attending answer within the allowance', async () => {
-		const result = await submitRsvp(db, { token: TOKEN, attending: true, seats: 2, note: 'Mabrouk!' });
+		const result = await submitRsvp(db, {
+			token: TOKEN,
+			attending: true,
+			seats: 2,
+			note: 'Mabrouk!'
+		});
 		expect(result.ok).toBe(true);
 		const rows = await db.select().from(rsvps);
 		expect(rows).toHaveLength(1);
@@ -79,7 +84,11 @@ describe('submitRsvp', () => {
 		await submitRsvp(db, { token: TOKEN, attending: true, seats: 2 });
 		const rows = await db.select().from(auditLog);
 		expect(rows).toHaveLength(1);
-		expect(rows[0]).toMatchObject({ action: 'rsvp.submit', entity: 'invitation', entityId: 'inv_test1' });
+		expect(rows[0]).toMatchObject({
+			action: 'rsvp.submit',
+			entity: 'invitation',
+			entityId: 'inv_test1'
+		});
 		expect(JSON.stringify(rows[0])).not.toContain(TOKEN);
 	});
 });
@@ -113,6 +122,9 @@ describe('createInvitations', () => {
 		for (const token of tokens) expect(token).toMatch(/^[1-9A-HJ-NP-Za-km-z]{22}$/);
 		const rows = await db.select().from(invitations);
 		expect(rows).toHaveLength(3);
-		expect(rows.find((r) => r.guestLabel === 'B')).toMatchObject({ lang: 'ar', groupTag: 'family' });
+		expect(rows.find((r) => r.guestLabel === 'B')).toMatchObject({
+			lang: 'ar',
+			groupTag: 'family'
+		});
 	});
 });

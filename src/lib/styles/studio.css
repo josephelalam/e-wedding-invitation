@@ -1,0 +1,155 @@
+/* Studio + dashboard chrome (owner/couple surfaces). Guest pages style themselves per theme. */
+:root {
+	--st-bg: #f7f5f2;
+	--st-surface: #ffffff;
+	--st-text: #2d2a26;
+	--st-muted: #7c766e;
+	--st-accent: #a3785f;
+	--st-accent-dark: #8a614a;
+	--st-danger: #b3423a;
+	--st-ok: #3a7d44;
+	--st-border: #e5e0d8;
+	--st-radius: 10px;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+body {
+	margin: 0;
+	background: var(--st-bg);
+	color: var(--st-text);
+	font-family: system-ui, 'Segoe UI', 'Noto Sans Arabic', sans-serif;
+	line-height: 1.5;
+}
+
+.st-card {
+	background: var(--st-surface);
+	border: 1px solid var(--st-border);
+	border-radius: var(--st-radius);
+	padding: 1.5rem;
+}
+
+.st-h1 {
+	font-size: 1.35rem;
+	font-weight: 650;
+	margin: 0 0 0.25rem;
+}
+
+.st-sub {
+	color: var(--st-muted);
+	font-size: 0.9rem;
+	margin: 0 0 1.25rem;
+}
+
+label.st-field {
+	display: block;
+	margin-bottom: 0.9rem;
+	font-size: 0.85rem;
+	font-weight: 600;
+}
+
+label.st-field > input,
+label.st-field > select,
+label.st-field > textarea {
+	display: block;
+	width: 100%;
+	margin-top: 0.3rem;
+	padding: 0.55rem 0.7rem;
+	font: inherit;
+	font-weight: 400;
+	border: 1px solid var(--st-border);
+	border-radius: 8px;
+	background: #fff;
+	color: inherit;
+}
+
+label.st-field > input:focus-visible,
+label.st-field > select:focus-visible,
+label.st-field > textarea:focus-visible {
+	outline: 2px solid var(--st-accent);
+	outline-offset: 1px;
+	border-color: var(--st-accent);
+}
+
+.st-btn {
+	display: inline-block;
+	padding: 0.55rem 1.1rem;
+	font: inherit;
+	font-weight: 600;
+	color: #fff;
+	background: var(--st-accent);
+	border: none;
+	border-radius: 8px;
+	cursor: pointer;
+}
+
+.st-btn:hover {
+	background: var(--st-accent-dark);
+}
+
+.st-btn:disabled {
+	opacity: 0.6;
+	cursor: wait;
+}
+
+.st-btn.secondary {
+	background: transparent;
+	color: var(--st-accent-dark);
+	border: 1px solid var(--st-border);
+}
+
+.st-btn.danger {
+	background: var(--st-danger);
+}
+
+.st-error {
+	background: #fbeae9;
+	border: 1px solid #eccfcd;
+	color: var(--st-danger);
+	border-radius: 8px;
+	padding: 0.6rem 0.8rem;
+	font-size: 0.85rem;
+	margin-bottom: 1rem;
+}
+
+.st-success {
+	background: #eaf4ec;
+	border: 1px solid #cfe3d3;
+	color: var(--st-ok);
+	border-radius: 8px;
+	padding: 0.6rem 0.8rem;
+	font-size: 0.85rem;
+	margin-bottom: 1rem;
+}
+
+.st-table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 0.9rem;
+}
+
+.st-table th,
+.st-table td {
+	text-align: start;
+	padding: 0.55rem 0.6rem;
+	border-bottom: 1px solid var(--st-border);
+	vertical-align: top;
+}
+
+.st-table th {
+	color: var(--st-muted);
+	font-weight: 600;
+	font-size: 0.78rem;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+}
+
+code.st-code {
+	background: #f0ece6;
+	border-radius: 5px;
+	padding: 0.1rem 0.4rem;
+	font-size: 0.85em;
+	word-break: break-all;
+}

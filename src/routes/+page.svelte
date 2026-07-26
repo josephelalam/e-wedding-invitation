@@ -1,2 +1,17 @@
-<h1>Welcome to SvelteKit</h1>
-<p>Visit <a href="https://svelte.dev/docs/kit">svelte.dev/docs/kit</a> to read the documentation</p>
+<svelte:head><title>EInvite</title></svelte:head>
+
+<main>
+	<p>EInvite</p>
+</main>
+
+<style>
+	main {
+		min-height: 100dvh;
+		display: grid;
+		place-items: center;
+		font-family: Georgia, serif;
+		letter-spacing: 0.3em;
+		text-transform: uppercase;
+		color: #a3785f;
+	}
+</style>

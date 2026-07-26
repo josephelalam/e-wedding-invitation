@@ -25,7 +25,9 @@ describe('translation completeness (spec §4.14 — fails if any key is missing)
 	it('has no empty strings in any language', () => {
 		for (const dict of [en, fr, ar]) {
 			for (const key of flattenKeys(dict as Record<string, unknown>)) {
-				const val = key.split('.').reduce<unknown>((o, k) => (o as Record<string, unknown>)[k], dict);
+				const val = key
+					.split('.')
+					.reduce<unknown>((o, k) => (o as Record<string, unknown>)[k], dict);
 				expect(val, key).toBeTypeOf('string');
 				expect((val as string).length, key).toBeGreaterThan(0);
 			}

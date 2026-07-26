@@ -1,6 +1,13 @@
 import { z } from 'zod';
 
-export const SECTION_IDS = ['hero', 'countdown', 'locations', 'schedule', 'rsvp', 'closing'] as const;
+export const SECTION_IDS = [
+	'hero',
+	'countdown',
+	'locations',
+	'schedule',
+	'rsvp',
+	'closing'
+] as const;
 export type SectionId = (typeof SECTION_IDS)[number];
 export const DEFAULT_SLIDE_ORDER: readonly SectionId[] = SECTION_IDS;
 

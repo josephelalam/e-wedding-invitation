@@ -86,16 +86,23 @@ e-invitation/                       # repo root (existing architecture md stays 
 ```jsonc
 // wrangler.jsonc (shape; database_id filled at deploy time, placeholder for local)
 {
-  "name": "einvite",
-  "main": "server/worker.ts",
-  "compatibility_date": "2026-07-01",
-  "compatibility_flags": ["nodejs_compat"],
-  "assets": { "binding": "ASSETS", "directory": ".svelte-kit/cloudflare" },
-  "d1_databases": [{ "binding": "DB", "database_name": "einvite-db", "database_id": "LOCAL-PLACEHOLDER", "migrations_dir": "drizzle" }],
-  "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "einvite-media" }],
-  "triggers": { "crons": ["0 2 * * *"] },
-  "vars": { "PUBLIC_BASE_URL": "http://localhost:8787" },
-  "observability": { "enabled": true }
+	"name": "einvite",
+	"main": "server/worker.ts",
+	"compatibility_date": "2026-07-01",
+	"compatibility_flags": ["nodejs_compat"],
+	"assets": { "binding": "ASSETS", "directory": ".svelte-kit/cloudflare" },
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "einvite-db",
+			"database_id": "LOCAL-PLACEHOLDER",
+			"migrations_dir": "drizzle"
+		}
+	],
+	"r2_buckets": [{ "binding": "MEDIA", "bucket_name": "einvite-media" }],
+	"triggers": { "crons": ["0 2 * * *"] },
+	"vars": { "PUBLIC_BASE_URL": "http://localhost:8787" },
+	"observability": { "enabled": true }
 }
 ```
 
@@ -106,10 +113,10 @@ e-invitation/                       # repo root (existing architecture md stays 
 import worker from '../.svelte-kit/cloudflare/_worker.js';
 import { runNightlyJobs } from '../src/lib/server/jobs';
 export default {
-  fetch: worker.fetch,
-  scheduled(event: ScheduledEvent, env: unknown, ctx: ExecutionContext) {
-    ctx.waitUntil(runNightlyJobs(env as App.Platform['env']));
-  }
+	fetch: worker.fetch,
+	scheduled(event: ScheduledEvent, env: unknown, ctx: ExecutionContext) {
+		ctx.waitUntil(runNightlyJobs(env as App.Platform['env']));
+	}
 } satisfies ExportedHandler;
 ```
 
@@ -142,6 +149,7 @@ BEGIN SELECT RAISE(ABORT, 'seats_exceed_allowance'); END;
 **Files:** Create `src/lib/server/crypto.ts`, `src/lib/server/services/rsvp.ts`, `services/invitations.ts`, `services/audit.ts`, `tests/unit/{crypto,rsvp,invitations}.test.ts`.
 
 **Produces:**
+
 - `generateToken(bytes=16): string` — base58, rejection sampling (no modulo bias), ~22 chars
 - `newId(): string` — 12-byte base58 id
 - `pbkdf2Hash(password) / pbkdf2Verify(hash, password)` — format `pbkdf2$100000$salt$hash` (WebCrypto, constant-time compare)
@@ -205,6 +213,7 @@ RSVP state is NOT baked into cached HTML: the RSVP section hydrates current stat
 **Files:** Create `src/lib/components/AudioPlayer.svelte`, `src/lib/components/sections/Cover.svelte`; modify `+page.svelte`; create `src/routes/api/audio/[key]/+server.ts`; fixture `tests/fixtures/silence.mp3`.
 
 **Behavior contract (from spec §3.1):**
+
 - Cover: full-screen, couple names + date + `guest_label`, single primary button (i18n "Open Invitation"); nothing else; no audio before tap.
 - Tap: sets `<audio src>` (element exists from mount with `preload="none"`, `loop`), `await audio.play()` inside the gesture handler, cover fades out (Svelte transition), scroll unlocked.
 - Audio element lives in `+page.svelte` OUTSIDE the scroll-snap container; never re-mounted; floating mute/unmute button fixed bottom-right on all slides (aria-label i18n); `visibilitychange` → pause/resume; `play()` rejection → stay silent, still open slides.
@@ -226,6 +235,7 @@ RSVP state is NOT baked into cached HTML: the RSVP section hydrates current stat
 **Files:** Create `sections/RsvpForm.svelte`, form action in `+page.server.ts`, `src/routes/api/rsvp/[token]/+server.ts` (GET state, POST for future check-in PWA), `src/lib/server/turnstile.ts`, `src/lib/server/ratelimit.ts`, `tests/unit/{ratelimit,turnstile}.test.ts`.
 
 **Contracts:**
+
 - Form: attending yes/no radio; seat stepper 1..max_seats (hidden when "no"); note ≤500 chars; works no-JS (`use:enhance` progressive); confirmation + "answered on X, you can change" state after submit.
 - Action: Zod parse → `verifyTurnstile(secret?, token, ip)` (skip+warn if secret unset; test keys in dev) → `rateLimit(db, key, {limit:10, windowSec:3600})` per-IP and per-token → `submitRsvp` → redirect/self with success. Errors mapped to i18n messages.
 - `rateLimit`: D1 table `rate_limits(key, count, reset_at)` fixed-window upsert, returns `{allowed, retryAfter}`; opportunistic cleanup of expired rows.
