@@ -32,6 +32,10 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx wrangler types
+      # local-only secrets are gitignored; the e2e stack needs throwaway values
+      - name: Create local test vars
+        run: |
+          printf 'ORIGIN=http://localhost:8787\nBETTER_AUTH_SECRET=ci-only-secret-0123456789abcdef0123456789\nSETUP_TOKEN=ci-only-setup-token\n' > .dev.vars
       - run: npx playwright install --with-deps chromium webkit
       - run: npx playwright test
         env:
@@ -42,3 +46,24 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 7
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [checks, e2e]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    concurrency: production-deploy
+    environment:
+      name: production
+      url: https://einvite.einvite.workers.dev
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      # build → apply pending D1 migrations remotely → wrangler deploy
+      - run: npm run deploy:prod
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: 129ef0889b75b05b92d3e3623126444e
