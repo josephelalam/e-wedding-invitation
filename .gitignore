@@ -23,3 +23,10 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 # Playwright
 test-results
+
+# Wrangler local secrets + generated types
+.dev.vars*
+worker-configuration.d.ts
+
+# Playwright
+playwright-report

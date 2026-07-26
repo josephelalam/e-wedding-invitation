@@ -16,10 +16,10 @@
 		"test": "npm run test:unit -- --run && npm run test:e2e",
 		"test:e2e": "playwright install && playwright test",
 		"gen": "wrangler types",
-		"db:push": "drizzle-kit push",
 		"db:generate": "drizzle-kit generate",
-		"db:migrate": "drizzle-kit migrate",
-		"db:studio": "drizzle-kit studio",
+		"db:migrate:local": "wrangler d1 migrations apply einvite-db --local",
+		"db:migrate:remote": "wrangler d1 migrations apply einvite-db --remote",
+		"seed": "npm run db:migrate:local && node --experimental-strip-types tests/seed/seed.ts",
 		"auth:schema": "better-auth generate --config src/lib/server/auth.ts --output src/lib/server/db/auth.schema.ts --yes"
 	},
 	"devDependencies": {
@@ -28,9 +28,11 @@
 		"@sveltejs/adapter-cloudflare": "^7.2.8",
 		"@sveltejs/kit": "^2.63.0",
 		"@sveltejs/vite-plugin-svelte": "^7.1.2",
+		"@types/better-sqlite3": "^7.6.13",
 		"@types/node": "^22",
 		"auth": "^1.6.23",
 		"better-auth": "^1.6.23",
+		"better-sqlite3": "^12.11.1",
 		"drizzle-kit": "^0.31.10",
 		"drizzle-orm": "^0.45.2",
 		"eslint": "^10.4.1",
@@ -46,5 +48,9 @@
 		"vite": "^8.0.16",
 		"vitest": "^4.1.8",
 		"wrangler": "^4.97.0"
+	},
+	"dependencies": {
+		"uqr": "^0.1.3",
+		"zod": "^4.4.3"
 	}
 }
