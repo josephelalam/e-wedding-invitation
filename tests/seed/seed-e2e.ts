@@ -34,6 +34,10 @@ const ownerHash = await pbkdf2Hash(E2E.owner.password);
 const nowMs = Date.now();
 
 const statements = [
+	// Deterministic test state: clear rate-limit windows and stale outbox links
+	// accumulated by earlier local runs (the per-token RSVP limit is 10/hour).
+	`DELETE FROM rate_limits;`,
+	`DELETE FROM outbox;`,
 	`DELETE FROM events WHERE slug IN (${q(E2E.slug)}, ${q(E2E.otherSlug)});`,
 	`DELETE FROM user WHERE email IN (${q(E2E.owner.email)}, ${q(E2E.couple.email)});`,
 	`INSERT INTO user (id, name, email, email_verified, role, two_factor_enabled, created_at, updated_at) VALUES

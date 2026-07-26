@@ -1,42 +1,35 @@
-# sv
+# EInvite — managed e-invitation platform
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+Trilingual (ar/fr/en) wedding & event e-invitations for the Lebanese market,
+run as a managed side business: the owner builds each event, guests open a
+music-backed envelope from a personal WhatsApp link, couples track RSVPs live.
 
-## Creating a project
+- **Architecture (authoritative):** [`architecture-einvitation-platform.md`](./architecture-einvitation-platform.md)
+- **Operations:** [`docs/runbook.md`](./docs/runbook.md)
+- **Stack:** SvelteKit (Svelte 5) on Cloudflare Workers · D1 + Drizzle · R2 · Better Auth · $0/month
 
-If you're seeing this, you've probably already done this step. Congrats!
+## Surfaces
 
-```sh
-# create a new project
-npx sv create my-app
+| URL                   | Who     | What                                                                             |
+| --------------------- | ------- | -------------------------------------------------------------------------------- |
+| `/e/{slug}/i/{token}` | guests  | cover → music → swipeable slides → RSVP (no account; the link is the credential) |
+| `/dash`               | couples | magic-link login → live RSVP dashboard + CSV export                              |
+| `/studio`             | owner   | password+TOTP → events, themes, guests, outbox, audit                            |
+
+## Quick start
+
+```bash
+nvm use && npm install
+npm run seed          # local D1 migrations + demo wedding (prints guest URLs)
+npm run build && npm run preview   # real Workers runtime on :4173
 ```
 
-To recreate this project with the same configuration:
+First production deploy: see the checklist in `docs/runbook.md` (wrangler
+login → D1/R2 create → secrets → `npm run deploy:prod` → `/studio/setup`).
 
-```sh
-# recreate this project
-npx sv@0.16.6 create --template minimal --types ts --add prettier eslint vitest="usages:unit" playwright sveltekit-adapter="adapter:cloudflare+cfTarget:workers" drizzle="database:d1" better-auth="demo:password" --no-download-check --install npm einvite
-```
+## Hard constraints (owner-mandated)
 
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```sh
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
-
-## Building
-
-To create a production version of your app:
-
-```sh
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+1. **No photo uploads anywhere** — the only upload in the system is one audio
+   track per event (enforced by a unit test).
+2. **Music-on-open** guest experience — the open button is the audio unlock.
+3. **~$0/month** — Cloudflare free tiers only; the domain is the only bill.
