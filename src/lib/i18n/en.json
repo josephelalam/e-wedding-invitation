@@ -65,6 +65,16 @@
 		"logout": "Sign out",
 		"export": "Download CSV",
 		"search": "Search guests…",
+		"copy": "Copy link",
+		"copied": "Copied ✓",
+		"whatsapp": "WhatsApp",
+		"import": {
+			"title": "Add guests",
+			"hint": "One card per line: name, seats, phone, lang, group — only name and seats are required.",
+			"button": "Add guests",
+			"done": "{count} card(s) created.",
+			"skipped": "Skipped: {lines}"
+		},
 		"login": {
 			"title": "Couple sign-in",
 			"email": "Email address",

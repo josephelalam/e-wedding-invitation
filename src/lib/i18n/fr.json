@@ -65,6 +65,16 @@
 		"logout": "Se déconnecter",
 		"export": "Télécharger le CSV",
 		"search": "Rechercher un invité…",
+		"copy": "Copier le lien",
+		"copied": "Copié ✓",
+		"whatsapp": "WhatsApp",
+		"import": {
+			"title": "Ajouter des invités",
+			"hint": "Une carte par ligne : nom, places, téléphone, langue, groupe — seuls le nom et les places sont requis.",
+			"button": "Ajouter les invités",
+			"done": "{count} carte(s) créée(s).",
+			"skipped": "Ignorées : {lines}"
+		},
 		"login": {
 			"title": "Connexion des mariés",
 			"email": "Adresse e-mail",

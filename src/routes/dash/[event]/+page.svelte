@@ -1,12 +1,29 @@
 <script lang="ts">
 	import '$lib/styles/studio.css';
+	import { enhance } from '$app/forms';
 	import { authClient } from '$lib/auth-client';
 	import { t, dirFor, type Lang } from '$lib/i18n';
 
-	let { data } = $props();
+	let { data, form } = $props();
 
 	const lang = $derived(data.lang as Lang);
 	const dir = $derived(dirFor(lang));
+
+	let copied = $state<string | null>(null);
+
+	function cardUrl(token: string): string {
+		return `${data.origin}/e/${data.event.slug}/i/${token}`;
+	}
+
+	async function copy(token: string) {
+		try {
+			await navigator.clipboard.writeText(cardUrl(token));
+			copied = token;
+			setTimeout(() => (copied = null), 1500);
+		} catch {
+			// clipboard unavailable — WhatsApp button still carries the link
+		}
+	}
 
 	const title = $derived.by(() => {
 		const byLang: Record<Lang, string | null> = {
@@ -82,6 +99,26 @@
 		</div>
 	</div>
 
+	<div class="st-card" style="margin-bottom:1.25rem">
+		<h2 class="st-h1">{t(lang, 'dash.import.title')}</h2>
+		<p class="st-sub">{t(lang, 'dash.import.hint')}</p>
+		{#if form?.imported !== undefined}
+			<p class="st-success">
+				{t(lang, 'dash.import.done', { count: form.imported })}
+				{#if form.importErrors?.length}
+					{t(lang, 'dash.import.skipped', { lines: form.importErrors.join(' · ') })}
+				{/if}
+			</p>
+		{/if}
+		<form method="POST" action="?/import" use:enhance>
+			<label class="st-field"
+				><span class="visually-hidden">{t(lang, 'dash.import.title')}</span>
+				<textarea name="csv" rows="3" placeholder="Teta Georgette,1"></textarea>
+			</label>
+			<button class="st-btn">{t(lang, 'dash.import.button')}</button>
+		</form>
+	</div>
+
 	<div class="st-card">
 		<div class="controls">
 			<nav class="filters">
@@ -110,6 +147,7 @@
 					<th>{t(lang, 'dash.table.status')}</th>
 					<th>{t(lang, 'dash.table.note')}</th>
 					<th>{t(lang, 'dash.table.answered')}</th>
+					<th></th>
 				</tr>
 			</thead>
 			<tbody>
@@ -130,6 +168,21 @@
 										month: 'short'
 									}).format(new Date(row.answeredAt))
 								: '—'}
+						</td>
+						<td class="share">
+							{#if !row.revoked}
+								<button class="st-btn secondary" type="button" onclick={() => copy(row.token)}>
+									{copied === row.token ? t(lang, 'dash.copied') : t(lang, 'dash.copy')}
+								</button>
+								{#if row.phone}
+									<a
+										class="st-btn secondary"
+										href="https://wa.me/{row.phone}?text={encodeURIComponent(cardUrl(row.token))}"
+										target="_blank"
+										rel="noopener noreferrer">{t(lang, 'dash.whatsapp')}</a
+									>
+								{/if}
+							{/if}
 						</td>
 					</tr>
 				{/each}
@@ -272,5 +325,37 @@
 		max-width: 18rem;
 		font-size: 0.85rem;
 		color: var(--st-muted);
+	}
+
+	.share {
+		display: flex;
+		gap: 0.4rem;
+		flex-wrap: wrap;
+	}
+
+	.share :global(.st-btn) {
+		padding: 0.3rem 0.65rem;
+		font-size: 0.75rem;
+		text-decoration: none;
+	}
+
+	.visually-hidden {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip-path: inset(50%);
+	}
+
+	textarea {
+		display: block;
+		width: 100%;
+		font: inherit;
+		font-size: 0.9rem;
+		padding: 0.55rem 0.7rem;
+		border: 1px solid var(--st-border);
+		border-radius: 8px;
+		margin-bottom: 0.8rem;
+		resize: vertical;
 	}
 </style>

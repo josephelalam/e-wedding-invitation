@@ -40,7 +40,7 @@ test.describe('owner lifecycle', () => {
 		await expect(page.getByRole('heading', { name: /^Cards \(3\)$/ })).toBeVisible();
 
 		// Go live
-		await page.getByRole('link', { name: 'Details' }).click();
+		await page.getByRole('link', { name: 'Details', exact: true }).click();
 		await page.getByRole('button', { name: 'Go live' }).click();
 		await expect(page.getByText('Saved.')).toBeVisible();
 
@@ -89,6 +89,13 @@ test.describe('couple magic-link login + dashboard + export', () => {
 		await couplePage.waitForURL(`**/dash/${E2E.eventId}**`);
 		await expect(couplePage.getByText('Nour & Leo').first()).toBeVisible();
 		await expect(couplePage.getByText('Sami & Dana')).toBeVisible();
+
+		// Couples can add guests from their own dashboard (parity with studio)
+		await couplePage.locator('textarea[name="csv"]').fill('Aunt Salma,2');
+		await couplePage.getByRole('button', { name: 'Add guests' }).click();
+		await expect(couplePage.getByText('1 card(s) created.')).toBeVisible();
+		await expect(couplePage.getByText('Aunt Salma').first()).toBeVisible();
+		await expect(couplePage.getByRole('button', { name: 'Copy link' }).first()).toBeVisible();
 
 		// Export through the couple session matches the DB state
 		const exportRes = await couplePage.request.get(`/api/events/${E2E.eventId}/export.csv`);

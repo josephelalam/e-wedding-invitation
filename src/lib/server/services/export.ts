@@ -39,6 +39,7 @@ export type RsvpStatus = 'confirmed' | 'declined' | 'pending';
 
 export type RsvpTableRow = {
 	invitationId: string;
+	token: string;
 	guestLabel: string;
 	maxSeats: number;
 	status: RsvpStatus;
@@ -73,6 +74,7 @@ export async function rsvpRows(
 		.orderBy(sql`${invitations.guestLabel} COLLATE NOCASE`);
 	return rows.map(({ invitation, rsvp }) => ({
 		invitationId: invitation.id,
+		token: invitation.token,
 		guestLabel: invitation.guestLabel,
 		maxSeats: invitation.maxSeats,
 		status: rsvp === null ? 'pending' : rsvp.attending ? 'confirmed' : 'declined',

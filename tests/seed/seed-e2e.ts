@@ -25,8 +25,8 @@ const theme = {
 function eventSql(id: string, slug: string, title: string) {
 	return `INSERT INTO events (id, slug, type, title_en, title_ar, title_fr, date_main, dates_extra, theme, languages, status, payment_status, retention_months, created_at, updated_at)
 VALUES (${q(id)}, ${q(slug)}, 'wedding', ${q(title)}, ${q('نور وليا')}, ${q(title)},
- '2027-06-05T17:00:00+03:00',
- ${q(JSON.stringify([{ label: { en: 'Sunday brunch' }, at: '2027-06-06T11:00:00+03:00' }]))},
+ '2027-06-05T17:00',
+ ${q(JSON.stringify([{ label: { en: 'Sunday brunch' }, at: '2027-06-06T11:00' }]))},
  ${q(JSON.stringify(theme))}, ${q(JSON.stringify(['en', 'ar', 'fr']))}, 'live', 'pending', 6, ${q(now)}, ${q(now)});`;
 }
 
@@ -48,8 +48,8 @@ const statements = [
 	eventSql(E2E.eventId, E2E.slug, 'Nour & Leo'),
 	eventSql(E2E.otherEventId, E2E.otherSlug, 'Other Event'),
 	`INSERT INTO locations (id, event_id, kind, label_en, maps_url, starts_at, sort) VALUES
- ('loc_e2e_1', ${q(E2E.eventId)}, 'ceremony', 'E2E Chapel', 'https://maps.app.goo.gl/e2e1', '2027-06-05T17:00:00+03:00', 1),
- ('loc_e2e_2', ${q(E2E.eventId)}, 'reception', 'E2E Hall', 'https://maps.app.goo.gl/e2e2', '2027-06-05T20:00:00+03:00', 2);`,
+ ('loc_e2e_1', ${q(E2E.eventId)}, 'ceremony', 'E2E Chapel', 'https://maps.app.goo.gl/e2e1', '2027-06-05T17:00', 1),
+ ('loc_e2e_2', ${q(E2E.eventId)}, 'reception', 'E2E Hall', 'https://maps.app.goo.gl/e2e2', '2027-06-05T20:00', 2);`,
 	`INSERT INTO invitations (id, event_id, token, guest_label, max_seats, phone, lang, group_tag, revoked, created_at) VALUES
  ('inv_e2e_guest', ${q(E2E.eventId)}, ${q(E2E.tokens.guest)}, 'Sami & Dana', 2, '9613000111', 'en', 'friends', 0, ${q(now)}),
  ('inv_e2e_decl', ${q(E2E.eventId)}, ${q(E2E.tokens.decline)}, 'Karim', 1, NULL, 'en', NULL, 0, ${q(now)}),

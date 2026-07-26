@@ -92,8 +92,21 @@
 		})
 	);
 
-	const welcomeText = $derived(data.theme.texts.welcome?.[lang] ?? null);
-	const closingText = $derived(data.theme.texts.closing?.[lang] ?? t(lang, 'closing.default'));
+	// Per-language text if provided, else whatever the owner wrote (single-input flow)
+	const welcomeText = $derived(
+		data.theme.texts.welcome?.[lang] ??
+			data.theme.texts.welcome?.en ??
+			data.theme.texts.welcome?.fr ??
+			data.theme.texts.welcome?.ar ??
+			null
+	);
+	const closingText = $derived(
+		data.theme.texts.closing?.[lang] ??
+			data.theme.texts.closing?.en ??
+			data.theme.texts.closing?.fr ??
+			data.theme.texts.closing?.ar ??
+			t(lang, 'closing.default')
+	);
 
 	async function open() {
 		opened = true;

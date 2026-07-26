@@ -29,6 +29,15 @@
 
 <svelte:head><title>Guests — EInvite Studio</title></svelte:head>
 
+{#if data.event.status !== 'live'}
+	<p class="st-error" style="margin-bottom:1.25rem">
+		⚠ This event is <strong>{data.event.status}</strong> — guest links and QR codes show "Invitation
+		not found" until you press <strong>Go live</strong> on the
+		<a href={resolve('/studio/(app)/events/[id]', { id: data.event.id })}>Details tab</a>. The
+		owner-only <a href="/e/{data.event.slug}/preview" target="_blank">preview</a> works at any status.
+	</p>
+{/if}
+
 <div class="st-card" style="margin-bottom:1.25rem">
 	<h2 class="st-h1">Import guest list</h2>
 	<p class="st-sub">

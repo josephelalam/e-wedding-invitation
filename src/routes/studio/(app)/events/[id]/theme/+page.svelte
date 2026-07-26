@@ -96,21 +96,14 @@
 				{/each}
 			</fieldset>
 
-			<details>
-				<summary>Welcome &amp; closing texts (per language)</summary>
-				{#each [['welcome', 'Welcome line (hero slide)'], ['closing', 'Closing message']] as [kind, label] (kind)}
-					<p class="st-sub" style="margin:.8rem 0 .2rem">{label}</p>
-					{#each ['ar', 'fr', 'en'] as lang (lang)}
-						<label class="st-field"
-							>{lang.toUpperCase()}
-							<textarea name="{kind}-{lang}" rows="2" dir={lang === 'ar' ? 'rtl' : 'ltr'}
-								>{(theme.texts as Record<string, Record<string, string>>)[kind]?.[lang] ??
-									''}</textarea
-							>
-						</label>
-					{/each}
-				{/each}
-			</details>
+			{#each [['welcome', 'Welcome line (hero slide)'], ['closing', 'Closing message']] as [kind, label] (kind)}
+				{@const current = (theme.texts as Record<string, Record<string, string>>)[kind]}
+				<label class="st-field"
+					>{label}
+					<textarea name={kind} rows="2">{current?.en ?? current?.fr ?? current?.ar ?? ''}</textarea
+					>
+				</label>
+			{/each}
 
 			<button class="st-btn" style="margin-top:1rem">Save theme</button>
 		</form>
@@ -198,11 +191,5 @@
 		max-height: 44rem;
 		border: 1px solid var(--st-border);
 		border-radius: 18px;
-	}
-
-	details summary {
-		cursor: pointer;
-		font-size: 0.9rem;
-		color: var(--st-accent-dark);
 	}
 </style>

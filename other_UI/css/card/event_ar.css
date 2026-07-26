@@ -1,0 +1,113 @@
+@import url('https://fonts.googleapis.com/css2?family=Aref+Ruqaa&family=Noto+Sans+Arabic:wght@400;600&display=swap');
+
+/** body font **/
+body,
+html,
+button,
+.intro_subTitle,
+form .form-field #full_name,
+form .form-field select#guests,
+form .form-field #message,
+form .form-field #npersons,
+.story_slide h1.title span.subtitle,
+.tpl-2 .introLineTXT,
+.event_lock form#unlock_preview button#form-btn,
+.poweredBy a,
+.wed_counter,
+.swipe_indicator .si_label,
+form .form-field .fld_error,
+.wed_counter div.tcell span.t_label,
+#ios_audio_lockscreen button {
+	font-family: 'Noto Sans Arabic', sans-serif;
+}
+body.ct_article,
+.ct_article button,
+.ct_article .intro_subTitle,
+.ct_article form .form-field #full_name,
+.ct_article form .form-field select#guests,
+.ct_article form .form-field #message,
+.ct_article form .form-field #npersons,
+.ct_article .story_slide h1.title span.subtitle,
+.ct_article .tpl-2 .introLineTXT,
+.ct_article .event_lock form#unlock_preview button#form-btn,
+.ct_article .poweredBy a,
+.ct_article .wed_counter,
+.ct_article .swipe_indicator .si_label,
+.ct_article form .form-field .fld_error,
+.ct_article .wed_counter div.tcell span.t_label,
+.ct_article #ios_audio_lockscreen button {
+	font-family: 'Noto Sans Arabic', sans-serif;
+}
+
+.ct_article .story_slide.gift_reg .slide-content,
+.ct_article .story_slide.generic .slide-content {
+	font-size: 20px;
+}
+
+/**  title font **/
+.introLineTXT,
+.story_slide h1.title,
+.invtslide .slideBody h3 {
+	font-family: 'Aref Ruqaa', serif;
+	font-weight: 400;
+}
+
+#clockTimer {
+	flex-flow: row-reverse;
+}
+.story_slide {
+	direction: rtl;
+}
+
+.introLineTXT p {
+	line-height: 55px;
+}
+.wed_counter {
+	line-height: 22px;
+	direction: rtl;
+}
+.story_slide.gift_reg .slide-content,
+.story_slide.generic .slide-content {
+	line-height: 35px;
+}
+.event_details .col.info {
+	line-height: 33px;
+}
+.invtslide .slideBody h3 {
+	margin: 35px auto;
+}
+.story_slide.invtslide h1.title span.subtitle {
+	font-size: 18px;
+}
+#qtauth {
+	padding-top: 2px;
+}
+.form-intro-wrapper {
+	margin-bottom: 14px;
+	line-height: 27px;
+}
+form .form-field label {
+	line-height: 19px;
+}
+.form-intro-wrapper dd.npersons_cont {
+	line-height: 18px;
+}
+section#sec_story .swipe_indicator,
+section#sec_story .swipe_indicator div {
+	line-height: 15px;
+}
+.prompt_label {
+	margin-top: -15px;
+}
+.prompt {
+	bottom: 17px;
+}
+.Adv_location_cont .adv_location_item {
+	line-height: 30px;
+}
+.advLoc_time .eventItem.ev_activity {
+	text-align: right;
+}
+.advLoc_time .eventItem.ev_time {
+	text-align: left;
+}

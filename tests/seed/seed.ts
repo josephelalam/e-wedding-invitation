@@ -57,21 +57,21 @@ const statements = [
 	`DELETE FROM events WHERE slug = ${q(slug)};`,
 	`INSERT INTO events (id, slug, type, title_en, title_ar, title_fr, date_main, dates_extra, theme, languages, status, payment_status, retention_months, created_at, updated_at)
 	 VALUES (${q(eventId)}, ${q(slug)}, 'wedding', 'Elie & Maya', ${q('إيلي ومايا')}, 'Elie & Maya',
-	 '2026-09-12T16:30:00+03:00',
+	 '2026-09-12T16:30',
 	 ${q(
 			JSON.stringify([
 				{
 					label: { en: 'Farewell brunch', fr: "Brunch d'adieu", ar: 'فطور الوداع' },
-					at: '2026-09-13T11:00:00+03:00'
+					at: '2026-09-13T11:00'
 				}
 			])
 		)},
 	 ${q(JSON.stringify(theme))}, ${q(JSON.stringify(['ar', 'fr', 'en']))}, 'live', 'deposit', 6, ${q(now)}, ${q(now)});`,
 	`INSERT INTO locations (id, event_id, kind, label_en, label_ar, label_fr, maps_url, starts_at, sort)
 	 VALUES
-	 (${q(newId())}, ${q(eventId)}, 'house_groom', ${q("Groom's house — Baabdat")}, ${q('منزل العريس — بعبدات')}, ${q('Maison du marié — Baabdat')}, 'https://maps.app.goo.gl/demo-baabdat', '2026-09-12T14:30:00+03:00', 1),
-	 (${q(newId())}, ${q(eventId)}, 'ceremony', ${q('Saint Mikhael Church, Achrafieh')}, ${q('كنيسة مار مخايل — الأشرفية')}, ${q('Église Saint-Michel, Achrafieh')}, 'https://maps.app.goo.gl/demo-marmikhael', '2026-09-12T16:30:00+03:00', 2),
-	 (${q(newId())}, ${q(eventId)}, 'reception', ${q('Seaside Pavilion, Dbayeh')}, ${q('أجنحة الواجهة البحرية — ضبية')}, ${q('Pavillon du bord de mer, Dbayeh')}, 'https://maps.app.goo.gl/demo-pavilion', '2026-09-12T20:00:00+03:00', 3);`,
+	 (${q(newId())}, ${q(eventId)}, 'house_groom', ${q("Groom's house — Baabdat")}, ${q('منزل العريس — بعبدات')}, ${q('Maison du marié — Baabdat')}, 'https://maps.app.goo.gl/demo-baabdat', '2026-09-12T14:30', 1),
+	 (${q(newId())}, ${q(eventId)}, 'ceremony', ${q('Saint Mikhael Church, Achrafieh')}, ${q('كنيسة مار مخايل — الأشرفية')}, ${q('Église Saint-Michel, Achrafieh')}, 'https://maps.app.goo.gl/demo-marmikhael', '2026-09-12T16:30', 2),
+	 (${q(newId())}, ${q(eventId)}, 'reception', ${q('Seaside Pavilion, Dbayeh')}, ${q('أجنحة الواجهة البحرية — ضبية')}, ${q('Pavillon du bord de mer, Dbayeh')}, 'https://maps.app.goo.gl/demo-pavilion', '2026-09-12T20:00', 3);`,
 	`INSERT INTO invitations (id, event_id, token, guest_label, max_seats, phone, lang, group_tag, revoked, created_at)
 	 VALUES ${invitationRows
 			.map(

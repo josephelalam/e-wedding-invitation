@@ -19,6 +19,18 @@
 			await update({ reset: false });
 		};
 	};
+
+	const eventDay = $derived(data.event.dateMain.slice(0, 10));
+
+	function timeOf(startsAt: string | null): string {
+		return startsAt?.slice(11, 16) ?? '';
+	}
+
+	function dayOverrideOf(startsAt: string | null): string {
+		if (!startsAt) return '';
+		const day = startsAt.slice(0, 10);
+		return day === eventDay ? '' : day;
+	}
 </script>
 
 <svelte:head><title>Locations — EInvite Studio</title></svelte:head>
@@ -51,18 +63,21 @@
 						/></label
 					>
 					<label class="st-field"
-						>Time<input
-							name="startsAt"
-							type="datetime-local"
-							value={location.startsAt?.slice(0, 16) ?? ''}
+						>Time (on the event day, {eventDay})<input
+							name="startsTime"
+							type="time"
+							value={timeOf(location.startsAt)}
 						/></label
 					>
 					<label class="st-field"
 						>Order<input name="sort" type="number" value={location.sort} /></label
 					>
 				</div>
-				<details class="translations" open={Boolean(location.labelAr || location.labelFr)}>
-					<summary>Translations (optional — guests see the main label if empty)</summary>
+				<details
+					class="translations"
+					open={Boolean(location.labelAr || location.labelFr || dayOverrideOf(location.startsAt))}
+				>
+					<summary>Translations &amp; different day (optional)</summary>
 					<div class="loc-grid">
 						<label class="st-field"
 							>Label (Arabic)<input
@@ -73,6 +88,13 @@
 						>
 						<label class="st-field"
 							>Label (French)<input name="labelFr" value={location.labelFr ?? ''} /></label
+						>
+						<label class="st-field"
+							>Different day<input
+								name="startsDate"
+								type="date"
+								value={dayOverrideOf(location.startsAt)}
+							/></label
 						>
 					</div>
 				</details>
@@ -100,16 +122,19 @@
 				</label>
 				<label class="st-field">Label<input name="labelEn" placeholder="Venue name" /></label>
 				<label class="st-field">Google Maps link<input name="mapsUrl" type="url" /></label>
-				<label class="st-field">Time<input name="startsAt" type="datetime-local" /></label>
+				<label class="st-field"
+					>Time (on the event day, {eventDay})<input name="startsTime" type="time" /></label
+				>
 				<label class="st-field"
 					>Order<input name="sort" type="number" value={data.locations.length + 1} /></label
 				>
 			</div>
 			<details class="translations">
-				<summary>Translations (optional)</summary>
+				<summary>Translations &amp; different day (optional)</summary>
 				<div class="loc-grid">
 					<label class="st-field">Label (Arabic)<input name="labelAr" dir="rtl" /></label>
 					<label class="st-field">Label (French)<input name="labelFr" /></label>
+					<label class="st-field">Different day<input name="startsDate" type="date" /></label>
 				</div>
 			</details>
 			<button class="st-btn">Add stop</button>
