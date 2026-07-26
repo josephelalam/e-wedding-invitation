@@ -1,4 +1,4 @@
-import { error, fail } from '@sveltejs/kit';
+import { error, fail, redirect } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
 import { getDb } from '$lib/server/db';
 import { events } from '$lib/server/db/schema';
@@ -10,6 +10,7 @@ import { isLang, type Lang } from '$lib/i18n';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params, platform, locals, url, setHeaders }) => {
+	if (!locals.user) redirect(303, '/dash/login');
 	const db = getDb(platform!.env.DB);
 	await requireEventAccess(db, locals, params.event);
 	setHeaders({ 'cache-control': 'no-store' });

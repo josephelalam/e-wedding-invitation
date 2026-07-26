@@ -1,5 +1,5 @@
 import { fail } from '@sveltejs/kit';
-import { asc, eq } from 'drizzle-orm';
+import { asc, eq, sql } from 'drizzle-orm';
 import { getDb } from '$lib/server/db';
 import { events, locations } from '$lib/server/db/schema';
 import { upsertLocation, deleteLocation } from '$lib/server/services/events';
@@ -15,7 +15,36 @@ export const load: PageServerLoad = async ({ params, platform }) => {
 	return { locations: rows };
 };
 
+async function eventDate(db: ReturnType<typeof getDb>, eventId: string): Promise<string> {
+	const [event] = await db
+		.select({ dateMain: events.dateMain })
+		.from(events)
+		.where(eq(events.id, eventId))
+		.limit(1);
+	return event?.dateMain ?? '';
+}
+
 export const actions: Actions = {
+	// One click creates an editable stop pre-filled with the event's own
+	// date+time and the next order number (max+1, so deletions never collide).
+	add: async ({ params, platform, locals }) => {
+		const db = getDb(platform!.env.DB);
+		const [row] = (await db.all(
+			sql`SELECT COALESCE(MAX(sort), 0) + 1 AS next FROM locations WHERE event_id = ${params.id}`
+		)) as { next: number }[];
+		const result = await upsertLocation(
+			db,
+			params.id,
+			{
+				kind: 'other',
+				startsAt: (await eventDate(db, params.id)).slice(0, 16),
+				sort: row?.next ?? 1
+			},
+			`owner:${locals.user!.id}`
+		);
+		if (!result.ok) return fail(400, { error: 'Could not add a stop — try again.' });
+		return { saved: true };
+	},
 	save: async ({ params, platform, request, locals }) => {
 		const db = getDb(platform!.env.DB);
 		const form = await request.formData();
@@ -26,15 +55,7 @@ export const actions: Actions = {
 		const dayOverride = String(form.get('startsDate') ?? '').trim();
 		let startsAt: string | null = null;
 		if (time) {
-			let day = dayOverride;
-			if (!day) {
-				const [event] = await db
-					.select({ dateMain: events.dateMain })
-					.from(events)
-					.where(eq(events.id, params.id))
-					.limit(1);
-				day = event?.dateMain.slice(0, 10) ?? '';
-			}
+			const day = dayOverride || (await eventDate(db, params.id)).slice(0, 10);
 			startsAt = day ? `${day}T${time}` : null;
 		}
 

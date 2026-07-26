@@ -72,20 +72,17 @@
 				<input name="slug" required pattern="[a-z0-9]+(-[a-z0-9]+)*" placeholder="elie-and-maya" />
 			</label>
 			<label class="st-field"
-				>Title
+				>Title (English)
 				<input name="titleEn" required placeholder="Elie &amp; Maya" />
 			</label>
-			<details class="translations">
-				<summary>Title translations (optional)</summary>
-				<label class="st-field"
-					>Arabic
-					<input name="titleAr" dir="rtl" placeholder="إيلي ومايا" />
-				</label>
-				<label class="st-field"
-					>French
-					<input name="titleFr" placeholder="Elie &amp; Maya" />
-				</label>
-			</details>
+			<label class="st-field"
+				>Title (Arabic)
+				<input name="titleAr" dir="rtl" placeholder="إيلي ومايا" />
+			</label>
+			<label class="st-field"
+				>Title (French)
+				<input name="titleFr" placeholder="Elie &amp; Maya" />
+			</label>
 			<label class="st-field"
 				>Main date &amp; time
 				<input name="dateMain" type="datetime-local" required />
@@ -159,16 +156,5 @@
 		font-weight: 600;
 		color: var(--st-muted);
 		padding-inline: 0.3rem;
-	}
-
-	.translations {
-		margin: 0 0 1rem;
-	}
-
-	.translations summary {
-		cursor: pointer;
-		font-size: 0.85rem;
-		color: var(--st-accent-dark);
-		margin-bottom: 0.6rem;
 	}
 </style>

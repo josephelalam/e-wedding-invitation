@@ -98,11 +98,17 @@
 
 			{#each [['welcome', 'Welcome line (hero slide)'], ['closing', 'Closing message']] as [kind, label] (kind)}
 				{@const current = (theme.texts as Record<string, Record<string, string>>)[kind]}
-				<label class="st-field"
-					>{label}
-					<textarea name={kind} rows="2">{current?.en ?? current?.fr ?? current?.ar ?? ''}</textarea
-					>
-				</label>
+				<fieldset class="texts">
+					<legend>{label}</legend>
+					{#each [['en', 'English'], ['ar', 'Arabic'], ['fr', 'French']] as [code, name] (code)}
+						<label class="st-field"
+							>{name}
+							<textarea name="{kind}-{code}" rows="2" dir={code === 'ar' ? 'rtl' : 'ltr'}
+								>{current?.[code] ?? ''}</textarea
+							>
+						</label>
+					{/each}
+				</fieldset>
 			{/each}
 
 			<button class="st-btn" style="margin-top:1rem">Save theme</button>
@@ -191,5 +197,19 @@
 		max-height: 44rem;
 		border: 1px solid var(--st-border);
 		border-radius: 18px;
+	}
+
+	.texts {
+		border: 1px solid var(--st-border);
+		border-radius: 8px;
+		padding: 0.8rem 1rem;
+		margin: 0 0 1rem;
+	}
+
+	.texts legend {
+		font-size: 0.78rem;
+		font-weight: 600;
+		color: var(--st-muted);
+		padding-inline: 0.3rem;
 	}
 </style>

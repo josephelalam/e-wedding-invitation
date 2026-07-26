@@ -42,11 +42,16 @@ export const actions: Actions = {
 				.sort((a, b) => a.order - b.order)
 				.map((s) => s.section as SectionId);
 
-			// One input per text; it renders for every language (owner request)
+			// Per-language texts; missing languages fall back to whichever is filled
 			const texts: Record<string, Record<string, string>> = {};
 			for (const kind of ['welcome', 'closing'] as const) {
-				const value = String(form.get(kind) ?? '').trim();
-				if (value) texts[kind] = { en: value };
+				for (const code of ['en', 'ar', 'fr'] as const) {
+					const value = String(form.get(`${kind}-${code}`) ?? '').trim();
+					if (value) {
+						texts[kind] = texts[kind] ?? {};
+						texts[kind][code] = value;
+					}
+				}
 			}
 
 			theme = {

@@ -60,7 +60,7 @@
 			<textarea
 				name="csv"
 				rows="5"
-				placeholder="Teta Georgette,1,,ar&#10;&quot;Karam, Elie &amp; Maya&quot;,3,+9613123456,fr,family"
+				placeholder="Teta Georgette,1,9613111222,ar,family&#10;&quot;Karam, Elie &amp; Maya&quot;,3,+9613123456,fr,friends&#10;Marc,2"
 			></textarea>
 		</label>
 		<button class="st-btn">Import</button>

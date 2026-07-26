@@ -35,13 +35,19 @@ export const createAuth = (d1: D1Database) => {
 		},
 		plugins: [
 			magicLink({
-				expiresIn: 60 * 15,
+				// 24 h: links travel over WhatsApp and are opened much later.
+				expiresIn: 60 * 60 * 24,
 				disableSignUp: true,
 				sendMagicLink: async ({ email, url }) => {
+					// WhatsApp link previews GET the URL server-side, which would
+					// consume a single-use link before the human taps it. The outbox
+					// therefore carries a landing page; only the button click hits
+					// the real verify URL.
+					const wrapped = `${env.ORIGIN}/dash/go?u=${encodeURIComponent(url)}`;
 					await deliverAuthLink(db, {
 						kind: 'magic_link',
 						email,
-						url,
+						url: wrapped,
 						send: resendSender(env.RESEND_API_KEY)
 					});
 				}

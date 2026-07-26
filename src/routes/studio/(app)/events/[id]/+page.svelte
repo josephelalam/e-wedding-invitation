@@ -25,14 +25,15 @@
 		{#if form?.saved}<p class="st-success">Saved.</p>{/if}
 
 		<form method="POST" action="?/update" use:enhance={keepValues}>
-			<label class="st-field">Title<input name="titleEn" value={event.titleEn ?? ''} /></label>
-			<details class="translations" open={Boolean(event.titleAr || event.titleFr)}>
-				<summary>Title translations (optional — guests see the main title if empty)</summary>
-				<label class="st-field"
-					>Arabic<input name="titleAr" dir="rtl" value={event.titleAr ?? ''} /></label
-				>
-				<label class="st-field">French<input name="titleFr" value={event.titleFr ?? ''} /></label>
-			</details>
+			<label class="st-field"
+				>Title (English)<input name="titleEn" value={event.titleEn ?? ''} /></label
+			>
+			<label class="st-field"
+				>Title (Arabic)<input name="titleAr" dir="rtl" value={event.titleAr ?? ''} /></label
+			>
+			<label class="st-field"
+				>Title (French)<input name="titleFr" value={event.titleFr ?? ''} /></label
+			>
 			<label class="st-field"
 				>Main date &amp; time<input
 					name="dateMain"
@@ -142,16 +143,5 @@
 		display: flex;
 		gap: 0.6rem;
 		flex-wrap: wrap;
-	}
-
-	.translations {
-		margin: 0 0 1rem;
-	}
-
-	.translations summary {
-		cursor: pointer;
-		font-size: 0.85rem;
-		color: var(--st-accent-dark);
-		margin-bottom: 0.6rem;
 	}
 </style>

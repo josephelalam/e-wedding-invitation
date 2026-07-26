@@ -113,7 +113,11 @@
 		<form method="POST" action="?/import" use:enhance>
 			<label class="st-field"
 				><span class="visually-hidden">{t(lang, 'dash.import.title')}</span>
-				<textarea name="csv" rows="3" placeholder="Teta Georgette,1"></textarea>
+				<textarea
+					name="csv"
+					rows="3"
+					placeholder="Teta Georgette,1,9613111222,ar,family&#10;&quot;Karam, Elie &amp; Maya&quot;,3,+9613123456,fr,friends"
+				></textarea>
 			</label>
 			<button class="st-btn">{t(lang, 'dash.import.button')}</button>
 		</form>

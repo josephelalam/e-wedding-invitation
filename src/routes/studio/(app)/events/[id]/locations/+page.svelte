@@ -39,6 +39,15 @@
 {#if form?.saved}<p class="st-success">Saved.</p>{/if}
 
 <div class="stack">
+	{#if data.locations.length === 0}
+		<div class="st-card">
+			<p class="st-sub" style="margin:0">
+				No stops yet — the day as guests will travel it: houses, ceremony, reception. Plain Google
+				Maps links; no embeds, no API keys.
+			</p>
+		</div>
+	{/if}
+
 	{#each data.locations as location, index (location.id)}
 		<div class="st-card">
 			<p class="stop-title">Stop {index + 1}</p>
@@ -52,8 +61,16 @@
 						</select>
 					</label>
 					<label class="st-field"
-						>Label
+						>Label (English)
 						<input name="labelEn" value={location.labelEn ?? ''} placeholder="Venue name" />
+					</label>
+					<label class="st-field"
+						>Label (Arabic)
+						<input name="labelAr" dir="rtl" value={location.labelAr ?? ''} />
+					</label>
+					<label class="st-field"
+						>Label (French)
+						<input name="labelFr" value={location.labelFr ?? ''} />
 					</label>
 					<label class="st-field"
 						>Google Maps link<input
@@ -63,7 +80,7 @@
 						/></label
 					>
 					<label class="st-field"
-						>Time (on the event day, {eventDay})<input
+						>Time (on {eventDay})<input
 							name="startsTime"
 							type="time"
 							value={timeOf(location.startsAt)}
@@ -72,32 +89,14 @@
 					<label class="st-field"
 						>Order<input name="sort" type="number" value={location.sort} /></label
 					>
+					<label class="st-field"
+						>Different day (optional)<input
+							name="startsDate"
+							type="date"
+							value={dayOverrideOf(location.startsAt)}
+						/></label
+					>
 				</div>
-				<details
-					class="translations"
-					open={Boolean(location.labelAr || location.labelFr || dayOverrideOf(location.startsAt))}
-				>
-					<summary>Translations &amp; different day (optional)</summary>
-					<div class="loc-grid">
-						<label class="st-field"
-							>Label (Arabic)<input
-								name="labelAr"
-								dir="rtl"
-								value={location.labelAr ?? ''}
-							/></label
-						>
-						<label class="st-field"
-							>Label (French)<input name="labelFr" value={location.labelFr ?? ''} /></label
-						>
-						<label class="st-field"
-							>Different day<input
-								name="startsDate"
-								type="date"
-								value={dayOverrideOf(location.startsAt)}
-							/></label
-						>
-					</div>
-				</details>
 				<div class="row-actions">
 					<button class="st-btn">Save this stop</button>
 					<button class="st-btn danger" formaction="?/remove" formnovalidate>Remove</button>
@@ -106,40 +105,9 @@
 		</div>
 	{/each}
 
-	<div class="st-card add-card">
-		<h2 class="st-h1">Add a stop</h2>
-		<p class="st-sub">
-			The day as guests will travel it — houses, ceremony, reception. Plain Google Maps links; no
-			embeds, no API keys.
-		</p>
-		<form method="POST" action="?/save" use:enhance>
-			<div class="loc-grid">
-				<label class="st-field"
-					>Kind
-					<select name="kind">
-						{#each KINDS as [value, label] (value)}<option {value}>{label}</option>{/each}
-					</select>
-				</label>
-				<label class="st-field">Label<input name="labelEn" placeholder="Venue name" /></label>
-				<label class="st-field">Google Maps link<input name="mapsUrl" type="url" /></label>
-				<label class="st-field"
-					>Time (on the event day, {eventDay})<input name="startsTime" type="time" /></label
-				>
-				<label class="st-field"
-					>Order<input name="sort" type="number" value={data.locations.length + 1} /></label
-				>
-			</div>
-			<details class="translations">
-				<summary>Translations &amp; different day (optional)</summary>
-				<div class="loc-grid">
-					<label class="st-field">Label (Arabic)<input name="labelAr" dir="rtl" /></label>
-					<label class="st-field">Label (French)<input name="labelFr" /></label>
-					<label class="st-field">Different day<input name="startsDate" type="date" /></label>
-				</div>
-			</details>
-			<button class="st-btn">Add stop</button>
-		</form>
-	</div>
+	<form method="POST" action="?/add" use:enhance>
+		<button class="st-btn add-btn">＋ Add a stop</button>
+	</form>
 </div>
 
 <style>
@@ -164,17 +132,6 @@
 		gap: 0 1rem;
 	}
 
-	.translations {
-		margin: 0 0 1rem;
-	}
-
-	.translations summary {
-		cursor: pointer;
-		font-size: 0.85rem;
-		color: var(--st-accent-dark);
-		margin-bottom: 0.6rem;
-	}
-
 	.row-actions {
 		display: flex;
 		gap: 0.6rem;
@@ -182,7 +139,15 @@
 		padding-top: 1rem;
 	}
 
-	.add-card {
-		border-style: dashed;
+	.add-btn {
+		width: 100%;
+		padding-block: 0.9rem;
+		background: transparent;
+		color: var(--st-accent-dark);
+		border: 2px dashed var(--st-border);
+	}
+
+	.add-btn:hover {
+		background: color-mix(in srgb, var(--st-accent) 8%, transparent);
 	}
 </style>

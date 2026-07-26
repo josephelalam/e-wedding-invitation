@@ -21,7 +21,7 @@ test.describe('owner lifecycle', () => {
 		// Create (slug unique per run+project so re-runs never hit slug_taken)
 		const slug = `pw-${test.info().project.name === 'chromium' ? 'c' : 'w'}-${Date.now().toString(36)}`;
 		await page.getByLabel('Link name (kebab-case)').fill(slug);
-		await page.getByLabel('Title', { exact: true }).fill('Play & Wright');
+		await page.getByLabel('Title (English)').fill('Play & Wright');
 		await page.getByLabel('Main date & time').fill('2027-10-09T17:00');
 		await page.getByRole('button', { name: 'Create event' }).click();
 		await expect(page.getByRole('heading', { name: 'Details' })).toBeVisible();
@@ -80,12 +80,18 @@ test.describe('couple magic-link login + dashboard + export', () => {
 			.locator('code')
 			.first()
 			.textContent();
-		expect(magicUrl).toContain('/api/auth/magic-link/verify');
+		// Outbox carries the landing page, not the raw single-use verify URL —
+		// WhatsApp link previews must not be able to consume it (GET is harmless)
+		expect(magicUrl).toContain('/dash/go?u=');
 
-		// Couple opens the link in a fresh browser (their phone)
+		// Couple opens the link in a fresh browser (their phone): a preview-style
+		// GET first, then the human taps the button
 		const coupleContext = await browser.newContext();
 		const couplePage = await coupleContext.newPage();
+		const preview = await coupleContext.request.get(magicUrl!);
+		expect(preview.status()).toBe(200);
 		await couplePage.goto(magicUrl!);
+		await couplePage.getByRole('link', { name: /Open my dashboard/ }).click();
 		await couplePage.waitForURL(`**/dash/${E2E.eventId}**`);
 		await expect(couplePage.getByText('Nour & Leo').first()).toBeVisible();
 		await expect(couplePage.getByText('Sami & Dana')).toBeVisible();
