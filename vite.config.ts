@@ -11,6 +11,24 @@ export default defineConfig({
 					filename.split(/[/\\]/).includes('node_modules') ? undefined : true
 			},
 			adapter: adapter(),
+			// Spec §7.2: self + Turnstile only. SvelteKit injects nonces for its
+			// own inline scripts; Svelte transitions need unsafe-inline styles.
+			csp: {
+				mode: 'auto',
+				directives: {
+					'default-src': ['self'],
+					'script-src': ['self', 'https://challenges.cloudflare.com'],
+					'frame-src': ['https://challenges.cloudflare.com'],
+					'connect-src': ['self', 'https://challenges.cloudflare.com'],
+					'media-src': ['self'],
+					'img-src': ['self', 'data:'],
+					'style-src': ['self', 'unsafe-inline'],
+					'font-src': ['self'],
+					'base-uri': ['self'],
+					'form-action': ['self'],
+					'object-src': ['none']
+				}
+			},
 			typescript: {
 				config: (config) => {
 					config.include.push('../drizzle.config.ts');

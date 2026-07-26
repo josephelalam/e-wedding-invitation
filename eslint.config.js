@@ -35,8 +35,11 @@ export default defineConfig(
 		}
 	},
 	{
-		// Override or add rule settings here, such as:
-		// 'svelte/button-has-type': 'error'
-		rules: {}
+		rules: {
+			// Typed resolve() is used for internal route links; plain hrefs remain
+			// legitimate for external URLs (Google Maps, wa.me) and same-route
+			// query-string links (?lang=, filters). goto() stays checked.
+			'svelte/no-navigation-without-resolve': ['error', { ignoreLinks: true }]
+		}
 	}
 );

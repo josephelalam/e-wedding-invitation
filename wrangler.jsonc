@@ -4,6 +4,9 @@
 	"compatibility_date": "2026-07-26",
 	"compatibility_flags": ["nodejs_compat"],
 	"main": ".svelte-kit/cloudflare/_worker.js",
+	"triggers": {
+		"crons": ["0 2 * * *"]
+	},
 	"assets": {
 		"binding": "ASSETS",
 		"directory": ".svelte-kit/cloudflare"

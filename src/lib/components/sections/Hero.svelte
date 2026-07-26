@@ -44,4 +44,9 @@
 		line-height: 1.7;
 		color: var(--ei-text);
 	}
+
+	/* Arabic script takes no tracking — letterspacing breaks connected letters */
+	:global([dir='rtl']) .date {
+		letter-spacing: 0;
+	}
 </style>

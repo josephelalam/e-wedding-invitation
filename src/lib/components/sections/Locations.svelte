@@ -54,7 +54,6 @@
 					<p class="name">{label(location)}</p>
 					{#if timeOf(location)}<p class="time">{timeOf(location)}</p>{/if}
 					{#if location.mapsUrl}
-						<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- external Google Maps URL (spec §8: plain links, no embeds) -->
 						<a class="maps" href={location.mapsUrl} target="_blank" rel="noopener noreferrer">
 							{t(lang, 'locations.open_maps')} ↗
 						</a>
@@ -155,5 +154,15 @@
 	.maps:focus-visible {
 		outline: 2px solid var(--ei-accent);
 		outline-offset: 2px;
+	}
+
+	/* Arabic script takes no tracking — letterspacing breaks connected letters */
+	:global([dir='rtl']) .heading {
+		letter-spacing: 0;
+	}
+
+	/* Arabic script takes no tracking — letterspacing breaks connected letters */
+	:global([dir='rtl']) .kind {
+		letter-spacing: 0;
 	}
 </style>

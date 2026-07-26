@@ -116,4 +116,10 @@
 		outline: 2px solid var(--ei-text);
 		outline-offset: 3px;
 	}
+
+	/* Arabic script takes no tracking — letterspacing breaks connected letters */
+	:global([dir='rtl']) .date,
+	:global([dir='rtl']) .open {
+		letter-spacing: 0;
+	}
 </style>

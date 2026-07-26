@@ -5,10 +5,10 @@
 	"type": "module",
 	"scripts": {
 		"dev": "vite dev",
-		"build": "wrangler types --check && vite build",
-		"preview": "wrangler dev .svelte-kit/cloudflare/_worker.js --port 4173",
+		"build": "wrangler types && vite build && node scripts/append-scheduled.mjs",
+		"preview": "wrangler dev --port 4173",
 		"prepare": "svelte-kit sync || echo ''",
-		"check": "wrangler types --check && svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+		"check": "wrangler types && svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"lint": "prettier --check . && eslint .",
 		"format": "prettier --write .",
@@ -21,7 +21,7 @@
 		"db:migrate:remote": "wrangler d1 migrations apply einvite-db --remote",
 		"seed": "npm run db:migrate:local && node --experimental-strip-types tests/seed/seed.ts",
 		"seed:e2e": "npm run db:migrate:local && node --experimental-strip-types tests/seed/seed-e2e.ts",
-		"e2e:server": "npm run build && npm run seed:e2e && wrangler dev .svelte-kit/cloudflare/_worker.js --port 8787",
+		"e2e:server": "npm run build && npm run seed:e2e && wrangler dev --port 8787",
 		"auth:schema": "better-auth generate --config src/lib/server/auth.ts --output src/lib/server/db/auth.schema.ts --yes"
 	},
 	"devDependencies": {

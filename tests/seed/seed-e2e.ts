@@ -7,6 +7,7 @@ import { mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { E2E } from './fixtures-e2e.ts';
+import { pbkdf2Hash } from '../../src/lib/server/crypto.ts';
 
 const q = (value: string) => `'${value.replaceAll("'", "''")}'`;
 const now = new Date().toISOString();
@@ -29,9 +30,17 @@ VALUES (${q(id)}, ${q(slug)}, 'wedding', ${q(title)}, ${q('نور وليا')}, $
  ${q(JSON.stringify(theme))}, ${q(JSON.stringify(['en', 'ar', 'fr']))}, 'live', 'pending', 6, ${q(now)}, ${q(now)});`;
 }
 
+const ownerHash = await pbkdf2Hash(E2E.owner.password);
+const nowMs = Date.now();
+
 const statements = [
 	`DELETE FROM events WHERE slug IN (${q(E2E.slug)}, ${q(E2E.otherSlug)});`,
-	`DELETE FROM user WHERE email IN ('e2e-owner@example.com', 'e2e-couple@example.com');`,
+	`DELETE FROM user WHERE email IN (${q(E2E.owner.email)}, ${q(E2E.couple.email)});`,
+	`INSERT INTO user (id, name, email, email_verified, role, two_factor_enabled, created_at, updated_at) VALUES
+ ('usr_e2e_owner', ${q(E2E.owner.name)}, ${q(E2E.owner.email)}, 1, 'owner', 0, ${nowMs}, ${nowMs}),
+ ('usr_e2e_couple', ${q(E2E.couple.name)}, ${q(E2E.couple.email)}, 1, 'couple', 0, ${nowMs}, ${nowMs});`,
+	`INSERT INTO account (id, account_id, provider_id, user_id, password, created_at, updated_at) VALUES
+ ('acc_e2e_owner', 'usr_e2e_owner', 'credential', 'usr_e2e_owner', ${q(ownerHash)}, ${nowMs}, ${nowMs});`,
 	eventSql(E2E.eventId, E2E.slug, 'Nour & Leo'),
 	eventSql(E2E.otherEventId, E2E.otherSlug, 'Other Event'),
 	`INSERT INTO locations (id, event_id, kind, label_en, maps_url, starts_at, sort) VALUES
@@ -41,7 +50,8 @@ const statements = [
  ('inv_e2e_guest', ${q(E2E.eventId)}, ${q(E2E.tokens.guest)}, 'Sami & Dana', 2, '9613000111', 'en', 'friends', 0, ${q(now)}),
  ('inv_e2e_decl', ${q(E2E.eventId)}, ${q(E2E.tokens.decline)}, 'Karim', 1, NULL, 'en', NULL, 0, ${q(now)}),
  ('inv_e2e_revk', ${q(E2E.eventId)}, ${q(E2E.tokens.revoked)}, 'Revoked Guest', 2, NULL, 'en', NULL, 1, ${q(now)}),
- ('inv_e2e_othr', ${q(E2E.otherEventId)}, ${q(E2E.tokens.other)}, 'Other Guest', 2, NULL, 'en', NULL, 0, ${q(now)});`
+ ('inv_e2e_othr', ${q(E2E.otherEventId)}, ${q(E2E.tokens.other)}, 'Other Guest', 2, NULL, 'en', NULL, 0, ${q(now)});`,
+	`INSERT INTO couples (user_id, event_id) VALUES ('usr_e2e_couple', ${q(E2E.eventId)});`
 ];
 
 const dir = mkdtempSync(join(tmpdir(), 'einvite-e2e-seed-'));

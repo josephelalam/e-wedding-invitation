@@ -70,4 +70,9 @@
 		color: var(--ei-muted);
 		font-size: 0.95rem;
 	}
+
+	/* Arabic script takes no tracking — letterspacing breaks connected letters */
+	:global([dir='rtl']) .heading {
+		letter-spacing: 0;
+	}
 </style>

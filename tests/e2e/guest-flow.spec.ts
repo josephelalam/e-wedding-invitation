@@ -40,10 +40,13 @@ test.describe('guest flow', () => {
 		const mapsLinks = page.getByRole('link', { name: /Open in Google Maps/ });
 		await expect(mapsLinks).toHaveCount(2);
 
-		// RSVP: yes with 2 seats
+		// RSVP: yes with 2 seats (a re-opened card shows the previous answer first —
+		// one card, one authoritative answer — so switch to editing when needed)
 		await page.locator('[data-section="rsvp"]').scrollIntoViewIfNeeded();
+		const changeAnswer = page.getByRole('button', { name: 'You can change your answer' });
+		if (await changeAnswer.isVisible().catch(() => false)) await changeAnswer.click();
 		await page.getByText('Yes, with joy').click();
-		await page.getByRole('button', { name: '+' }).click();
+		await page.locator('input[name="seats"]').fill('2');
 		await expect(page.locator('input[name="seats"]')).toHaveValue('2');
 		await page.getByRole('button', { name: 'Send answer' }).click();
 		await expect(page.getByText("Wonderful — we can't wait to see you!")).toBeVisible();
@@ -60,6 +63,8 @@ test.describe('guest flow', () => {
 		await page.goto(`/e/${E2E.slug}/i/${E2E.tokens.decline}`);
 		await page.getByRole('button', { name: 'Open Invitation' }).click();
 		await page.locator('[data-section="rsvp"]').scrollIntoViewIfNeeded();
+		const changeAnswer = page.getByRole('button', { name: 'You can change your answer' });
+		if (await changeAnswer.isVisible().catch(() => false)) await changeAnswer.click();
 		await page.getByText("We can't make it").click();
 		await page.getByRole('button', { name: 'Send answer' }).click();
 		await expect(page.getByText('Thank you for letting us know')).toBeVisible();

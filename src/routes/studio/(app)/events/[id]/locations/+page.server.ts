@@ -1,0 +1,47 @@
+import { fail } from '@sveltejs/kit';
+import { asc, eq } from 'drizzle-orm';
+import { getDb } from '$lib/server/db';
+import { locations } from '$lib/server/db/schema';
+import { upsertLocation, deleteLocation } from '$lib/server/services/events';
+import type { Actions, PageServerLoad } from './$types';
+
+export const load: PageServerLoad = async ({ params, platform }) => {
+	const db = getDb(platform!.env.DB);
+	const rows = await db
+		.select()
+		.from(locations)
+		.where(eq(locations.eventId, params.id))
+		.orderBy(asc(locations.sort), asc(locations.startsAt));
+	return { locations: rows };
+};
+
+export const actions: Actions = {
+	save: async ({ params, platform, request, locals }) => {
+		const db = getDb(platform!.env.DB);
+		const form = await request.formData();
+		const result = await upsertLocation(
+			db,
+			params.id,
+			{
+				id: String(form.get('id') ?? '') || undefined,
+				kind: String(form.get('kind') ?? ''),
+				labelEn: String(form.get('labelEn') ?? '') || null,
+				labelAr: String(form.get('labelAr') ?? '') || null,
+				labelFr: String(form.get('labelFr') ?? '') || null,
+				mapsUrl: String(form.get('mapsUrl') ?? ''),
+				startsAt: String(form.get('startsAt') ?? ''),
+				sort: Number(form.get('sort') ?? 0)
+			},
+			`owner:${locals.user!.id}`
+		);
+		if (!result.ok)
+			return fail(400, { error: 'Check the stop: kind and a valid URL are required.' });
+		return { saved: true };
+	},
+	remove: async ({ params, platform, request, locals }) => {
+		const db = getDb(platform!.env.DB);
+		const id = String((await request.formData()).get('id') ?? '');
+		if (id) await deleteLocation(db, params.id, id, `owner:${locals.user!.id}`);
+		return { saved: true };
+	}
+};

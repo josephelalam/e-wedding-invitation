@@ -36,10 +36,26 @@ export const load: PageServerLoad = async ({ params, platform, setHeaders, url, 
 
 	setHeaders({ 'cache-control': CACHE_HEADER, 'x-robots-tag': 'noindex' });
 
+	const titles: Record<Lang, string | null> = {
+		ar: data.event.titleAr,
+		fr: data.event.titleFr,
+		en: data.event.titleEn
+	};
+	const pageTitle =
+		titles[lang] ?? data.event.titleEn ?? data.event.titleFr ?? data.event.titleAr ?? 'Invitation';
+	const ogDescription = new Intl.DateTimeFormat(lang === 'ar' ? 'ar-LB-u-nu-latn' : lang, {
+		weekday: 'long',
+		day: 'numeric',
+		month: 'long',
+		year: 'numeric'
+	}).format(new Date(data.event.dateMain));
+
 	return {
 		invalid: false as const,
 		lang,
 		languages: supported,
+		pageTitle,
+		ogDescription,
 		event: data.event,
 		theme: data.theme,
 		locations: data.locations,

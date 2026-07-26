@@ -9,6 +9,8 @@ export default defineConfig({
 	timeout: 45_000,
 	forbidOnly: !!process.env.CI,
 	retries: process.env.CI ? 2 : 0,
+	// One shared local D1 → serial execution keeps specs deterministic
+	workers: 1,
 	reporter: process.env.CI ? [['list'], ['html', { open: 'never' }]] : 'list',
 	use: {
 		baseURL: 'http://localhost:8787',

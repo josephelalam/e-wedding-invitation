@@ -375,4 +375,19 @@
 		text-decoration: underline;
 		cursor: pointer;
 	}
+
+	/* Arabic script takes no tracking — letterspacing breaks connected letters */
+	:global([dir='rtl']) .heading {
+		letter-spacing: 0;
+	}
+
+	/* Arabic script takes no tracking — letterspacing breaks connected letters */
+	:global([dir='rtl']) .label {
+		letter-spacing: 0;
+	}
+
+	/* Arabic script takes no tracking — letterspacing breaks connected letters */
+	:global([dir='rtl']) .submit {
+		letter-spacing: 0;
+	}
 </style>
