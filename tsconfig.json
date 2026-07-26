@@ -3,7 +3,9 @@
 	"compilerOptions": {
 		"rewriteRelativeImportExtensions": true,
 		"allowJs": true,
-		"checkJs": true,
+		// checkJs off: wrangler's generated `mainModule: typeof import('./.svelte-kit/cloudflare/_worker')`
+		// pulls the whole build output into the program; all authored code is TS anyway.
+		"checkJs": false,
 		"esModuleInterop": true,
 		"forceConsistentCasingInFileNames": true,
 		"resolveJsonModule": true,
@@ -12,5 +14,19 @@
 		"strict": true,
 		"moduleResolution": "bundler",
 		"types": ["./worker-configuration.d.ts"]
-	}
+	},
+	"exclude": [
+		"node_modules/**",
+		".svelte-kit/output/**",
+		".svelte-kit/cloudflare/**",
+		".wrangler/**",
+		"test-results/**",
+		"playwright-report/**",
+		"src/service-worker.js",
+		"src/service-worker/**/*.js",
+		"src/service-worker.ts",
+		"src/service-worker/**/*.ts",
+		"src/service-worker.d.ts",
+		"src/service-worker/**/*.d.ts"
+	]
 }

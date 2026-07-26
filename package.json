@@ -20,6 +20,8 @@
 		"db:migrate:local": "wrangler d1 migrations apply einvite-db --local",
 		"db:migrate:remote": "wrangler d1 migrations apply einvite-db --remote",
 		"seed": "npm run db:migrate:local && node --experimental-strip-types tests/seed/seed.ts",
+		"seed:e2e": "npm run db:migrate:local && node --experimental-strip-types tests/seed/seed-e2e.ts",
+		"e2e:server": "npm run build && npm run seed:e2e && wrangler dev .svelte-kit/cloudflare/_worker.js --port 8787",
 		"auth:schema": "better-auth generate --config src/lib/server/auth.ts --output src/lib/server/db/auth.schema.ts --yes"
 	},
 	"devDependencies": {

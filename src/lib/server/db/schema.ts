@@ -12,8 +12,8 @@ import { sql } from 'drizzle-orm';
 // Spec §5 — event-agnostic model: `events`, not `weddings`; locations are an
 // ordered typed list; one invitation card = one authoritative RSVP row.
 
-export type LocalizedText = Partial<Record<'ar' | 'fr' | 'en', string>>;
-export type ExtraDate = { label: LocalizedText; at: string };
+import type { ExtraDate } from '$lib/types';
+export type { ExtraDate, LocalizedText } from '$lib/types';
 
 export const events = sqliteTable(
 	'events',
