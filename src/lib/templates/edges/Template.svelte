@@ -3,15 +3,16 @@
 	import Countdown from '$lib/components/sections/Countdown.svelte';
 	import Locations from '$lib/components/sections/Locations.svelte';
 	import Schedule from '$lib/components/sections/Schedule.svelte';
+	import Icon from '$lib/components/sections/Icon.svelte';
 	import RsvpBlock from '$lib/templates/shared/RsvpBlock.svelte';
 	import Petals from '$lib/templates/shared/Petals.svelte';
 	import { t } from '$lib/i18n';
 	import type { TemplateProps } from '$lib/templates/types';
 
-	// Template "edges" — a long scrolling story: full-bleed photos torn like
-	// paper between quiet cards. Photos are owner-placed R2 keys (hard
-	// constraint #1: no upload UI); with no photos the bands become soft
-	// gradients so the template never breaks.
+	// Template "edges" — the formal story: full-bleed photos torn like paper
+	// between quiet stationery cards, in the verse → families → couple → day
+	// order the market's formal invitations follow. Photos come from owner-
+	// placed R2 keys, else the bundled stock set (see templates/stock.ts).
 	let { data, ctx, currentRsvp, errorKey, preview, opened, onopen }: TemplateProps = $props();
 
 	const bands = $derived(ctx.imageUrls);
@@ -27,6 +28,7 @@
 		<div class="hero-content">
 			<p class="greeting">{t(ctx.lang, 'cover.dear', { name: data.invitation.guestLabel })}</p>
 			<h1 class="names">{ctx.title}</h1>
+			<p class="hero-flourish" aria-hidden="true"><span></span>✦<span></span></p>
 			<p class="date">{ctx.dateFull}</p>
 			{#if !opened}
 				<button class="open" type="button" onclick={onopen}>
@@ -39,6 +41,7 @@
 	</header>
 
 	<article class="card" id="slide-0" use:inview>
+		<p class="seal" aria-hidden="true"><span>{ctx.monogram}</span></p>
 		{#if ctx.introText}<p class="verse">{ctx.introText}</p>{/if}
 		{#if ctx.parentsText}<p class="parents">{ctx.parentsText}</p>{/if}
 		{#if ctx.welcomeText}<p class="welcome">{ctx.welcomeText}</p>{/if}
@@ -75,6 +78,7 @@
 
 	{#if ctx.giftsText}
 		<article class="card" use:inview>
+			<span class="badge"><Icon name="gift" /></span>
 			<h2 class="card-heading">{t(ctx.lang, 'gifts.title')}</h2>
 			<p class="gifts">{ctx.giftsText}</p>
 		</article>
@@ -130,9 +134,9 @@
 		inset: 0;
 		background: linear-gradient(
 			to bottom,
-			rgba(20, 16, 12, 0.35),
-			rgba(20, 16, 12, 0.15) 40%,
-			rgba(20, 16, 12, 0.55)
+			rgba(18, 14, 10, 0.42),
+			rgba(18, 14, 10, 0.18) 42%,
+			rgba(18, 14, 10, 0.6)
 		);
 	}
 
@@ -140,52 +144,83 @@
 		position: relative;
 		color: #fdfbf8;
 		padding: 2rem 1.5rem;
-		text-shadow: 0 1px 14px rgba(0, 0, 0, 0.45);
+		width: min(34rem, 100%);
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		text-shadow: 0 1px 18px rgba(0, 0, 0, 0.4);
 	}
 
 	.greeting {
-		margin: 0 0 1rem;
+		margin: 0 0 1.2rem;
 		font-family: var(--ei-font-display);
 		font-style: italic;
-		font-size: 1.2rem;
+		font-size: 1.25rem;
 	}
 
 	.names {
 		margin: 0;
-		font-family: var(--ei-font-display);
-		font-weight: 500;
-		font-size: clamp(2.6rem, 10vw, 4rem);
-		line-height: 1.12;
+		font-family: var(--ei-font-script);
+		font-weight: 400;
+		font-size: clamp(2.9rem, 12vw, 4.4rem);
+		line-height: 1.25;
 		text-wrap: balance;
 	}
 
+	.hero-flourish {
+		margin: 1.1rem 0;
+		width: min(17rem, 75%);
+		display: flex;
+		align-items: center;
+		gap: 0.9rem;
+		font-size: 0.65rem;
+		opacity: 0.9;
+	}
+
+	.hero-flourish span {
+		flex: 1;
+		height: 1px;
+		background: rgba(253, 251, 248, 0.45);
+	}
+
 	.date {
-		margin: 1rem 0 0;
-		letter-spacing: 0.16em;
-		font-size: 0.95rem;
+		margin: 0;
+		font-family: var(--ei-font-caps);
+		letter-spacing: 0.2em;
+		text-indent: 0.2em;
+		text-transform: uppercase;
+		font-size: 0.9rem;
 	}
 
 	:global([dir='rtl']) .date {
 		letter-spacing: 0;
+		text-indent: 0;
 	}
 
 	.open {
-		margin-top: 2rem;
-		font: inherit;
-		font-size: 0.85rem;
-		font-weight: 600;
-		letter-spacing: 0.22em;
+		margin-top: 2.2rem;
+		font-family: var(--ei-font-body);
+		font-size: 0.78rem;
+		font-weight: 500;
+		letter-spacing: 0.3em;
+		text-indent: 0.3em;
 		text-transform: uppercase;
-		color: var(--ei-text);
-		background: #fdfbf8;
-		border: none;
+		color: #fdfbf8;
+		background: transparent;
+		border: 1px solid rgba(253, 251, 248, 0.7);
 		border-radius: 999px;
-		padding: 0.95rem 2.4rem;
+		padding: 1rem 2.6rem;
 		cursor: pointer;
+		transition: background-color 0.3s ease;
 	}
 
 	:global([dir='rtl']) .open {
 		letter-spacing: 0;
+		text-indent: 0;
+	}
+
+	.open:hover {
+		background: rgba(253, 251, 248, 0.14);
 	}
 
 	.open:focus-visible {
@@ -223,74 +258,139 @@
 		z-index: 2;
 		max-width: 34rem;
 		margin: 0 auto;
-		padding: 4rem 1.9rem;
+		padding: 4.6rem 1.9rem;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: 1.1rem;
+		gap: 1.2rem;
 		text-align: center;
+	}
+
+	.seal {
+		margin: 0 0 0.4rem;
+		width: 4rem;
+		height: 4rem;
+		display: grid;
+		place-items: center;
+		border: 1px solid color-mix(in srgb, var(--ei-accent) 70%, transparent);
+		border-radius: 999px;
+		font-family: var(--ei-font-display);
+		font-size: 1.05rem;
+		color: var(--ei-accent);
+	}
+
+	.seal span {
+		display: grid;
+		place-items: center;
+		width: 3.3rem;
+		height: 3.3rem;
+		border: 1px solid color-mix(in srgb, var(--ei-accent) 35%, transparent);
+		border-radius: 999px;
 	}
 
 	.verse {
 		margin: 0;
+		position: relative;
 		font-family: var(--ei-font-display);
 		font-style: italic;
-		font-size: 1.05rem;
+		font-size: 1.18rem;
 		color: var(--ei-muted);
-		line-height: 1.9;
+		line-height: 1.95;
+		max-width: 28rem;
+	}
+
+	.verse::before {
+		content: '“';
+		display: block;
+		font-family: var(--ei-font-display);
+		font-size: 3rem;
+		line-height: 0.4;
+		margin-bottom: 0.5rem;
+		color: color-mix(in srgb, var(--ei-accent) 70%, transparent);
+	}
+
+	:global([dir='rtl']) .verse::before {
+		content: '”';
 	}
 
 	.parents {
 		margin: 0;
-		font-size: 0.92rem;
-		letter-spacing: 0.06em;
-		color: var(--ei-muted);
-		line-height: 1.9;
+		font-family: var(--ei-font-body);
+		font-size: 0.86rem;
+		letter-spacing: 0.16em;
+		text-transform: uppercase;
+		color: var(--ei-text);
+		line-height: 2.1;
 		white-space: pre-line;
+	}
+
+	:global([dir='rtl']) .parents {
+		letter-spacing: 0;
 	}
 
 	.welcome {
 		margin: 0;
-		font-size: 1.05rem;
+		font-family: var(--ei-font-display);
+		font-size: 1.12rem;
+		line-height: 1.8;
 	}
 
 	.card-names {
-		margin: 0.4rem 0 0;
-		font-family: var(--ei-font-display);
-		font-weight: 500;
-		font-size: clamp(2rem, 8vw, 2.9rem);
+		margin: 0.5rem 0 0;
+		font-family: var(--ei-font-script);
+		font-weight: 400;
+		font-size: clamp(2.3rem, 9vw, 3.2rem);
+		line-height: 1.3;
 		color: var(--ei-accent);
 		text-wrap: balance;
 	}
 
 	.card-date {
 		margin: 0;
-		letter-spacing: 0.14em;
+		font-family: var(--ei-font-caps);
+		letter-spacing: 0.16em;
+		text-indent: 0.16em;
+		text-transform: uppercase;
 		color: var(--ei-muted);
-		font-size: 0.92rem;
+		font-size: 0.88rem;
 	}
 
 	:global([dir='rtl']) .card-date {
 		letter-spacing: 0;
+		text-indent: 0;
+	}
+
+	.badge {
+		display: grid;
+		place-items: center;
+		width: 3.6rem;
+		height: 3.6rem;
+		border: 1px solid color-mix(in srgb, var(--ei-accent) 45%, transparent);
+		border-radius: 999px;
+		color: var(--ei-accent);
 	}
 
 	.card-heading {
 		margin: 0;
-		font-size: 0.9rem;
-		font-weight: 600;
-		letter-spacing: 0.22em;
+		font-family: var(--ei-font-caps);
+		font-size: 0.8rem;
+		font-weight: 500;
+		letter-spacing: 0.3em;
+		text-indent: 0.3em;
+		text-transform: uppercase;
 		color: var(--ei-muted);
 	}
 
 	:global([dir='rtl']) .card-heading {
 		letter-spacing: 0;
+		text-indent: 0;
 	}
 
 	.gifts {
 		margin: 0;
 		font-family: var(--ei-font-display);
-		font-size: 1.2rem;
-		line-height: 1.8;
+		font-size: 1.22rem;
+		line-height: 1.9;
 		white-space: pre-line;
 	}
 
@@ -335,7 +435,7 @@
 
 	/* ── ending ───────────────────────────────────────── */
 	.end {
-		padding: 4rem 1.5rem 3rem;
+		padding: 4.5rem 1.5rem 3rem;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
@@ -346,8 +446,8 @@
 	.polaroid {
 		margin: 0;
 		background: #fff;
-		padding: 0.8rem 0.8rem 1.1rem;
-		box-shadow: 0 14px 42px rgba(30, 22, 16, 0.22);
+		padding: 0.85rem 0.85rem 1.2rem;
+		box-shadow: 0 18px 50px rgba(30, 22, 16, 0.28);
 		transform: rotate(-2.2deg);
 		max-width: 20rem;
 	}
@@ -360,22 +460,21 @@
 	}
 
 	.polaroid figcaption {
-		margin-top: 0.9rem;
-		font-family: var(--ei-font-display);
-		font-style: italic;
-		font-size: 1.05rem;
-		color: var(--ei-text);
+		margin-top: 1rem;
+		font-family: var(--ei-font-script);
+		font-size: 1.35rem;
+		color: #2c2620;
 	}
 
 	.end-caption {
 		margin: 0;
-		font-family: var(--ei-font-display);
-		font-style: italic;
-		font-size: 1.35rem;
+		font-family: var(--ei-font-script);
+		font-size: 1.8rem;
 	}
 
 	.colophon {
-		margin: 2rem 0 0;
+		margin: 2.2rem 0 0;
+		font-family: var(--ei-font-body);
 		font-size: 0.62rem;
 		letter-spacing: 0.34em;
 		text-transform: uppercase;

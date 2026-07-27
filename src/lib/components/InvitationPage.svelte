@@ -3,7 +3,8 @@
 	import AudioPlayer from '$lib/components/AudioPlayer.svelte';
 	import { t, dirFor } from '$lib/i18n';
 	import { TEMPLATES } from '$lib/templates/registry';
-	import { resolveText, mediaUrl, rsvpClosed } from '$lib/templates/context';
+	import { resolveText, rsvpClosed } from '$lib/templates/context';
+	import { resolveImageUrls } from '$lib/templates/stock';
 	import type { InviteData, TemplateCtx } from '$lib/templates/types';
 	import type { RsvpView } from '$lib/types';
 
@@ -50,6 +51,17 @@
 		return initials.length >= 2 ? initials.slice(0, 2).join('·') : '✦';
 	});
 
+	const dateParts = $derived.by(() => {
+		const parts = new Intl.DateTimeFormat(lang === 'ar' ? 'ar-LB-u-nu-latn' : lang, {
+			weekday: 'long',
+			day: 'numeric',
+			month: 'long',
+			year: 'numeric'
+		}).formatToParts(new Date(data.event.dateMain));
+		const get = (type: string) => parts.find((part) => part.type === type)?.value ?? '';
+		return { weekday: get('weekday'), day: get('day'), month: get('month'), year: get('year') };
+	});
+
 	const ctx: TemplateCtx = $derived({
 		lang,
 		dir,
@@ -60,6 +72,7 @@
 			month: 'long',
 			year: 'numeric'
 		}).format(new Date(data.event.dateMain)),
+		dateParts,
 		monogram,
 		welcomeText: resolveText(data.theme.texts.welcome, lang),
 		closingText: resolveText(data.theme.texts.closing, lang) ?? t(lang, 'closing.default'),
@@ -67,11 +80,20 @@
 		parentsText: resolveText(data.theme.texts.parents, lang),
 		giftsText: resolveText(data.theme.texts.gifts, lang),
 		endCaptionText: resolveText(data.theme.texts.endCaption, lang),
-		imageUrls: data.theme.images.map(mediaUrl),
+		imageUrls: resolveImageUrls(data.theme),
 		rsvpIsClosed: rsvpClosed(data.theme.rsvpDeadline)
 	});
 
 	const Template = $derived((TEMPLATES[data.theme.template] ?? TEMPLATES.slides).component);
+
+	// The slides deck lives entirely over photography: it takes monochrome
+	// ivory surfaces (the references prove zero-brand-color is the premium
+	// look there) while --ei-accent still carries the couple's theme.
+	const surface = $derived(
+		data.theme.template === 'slides'
+			? { bg: '#181410', text: '#f9f5ed', muted: '#cfc4b2' }
+			: data.theme.colors
+	);
 
 	async function open() {
 		opened = true;
@@ -94,9 +116,10 @@
 	class="invite"
 	{dir}
 	{lang}
-	style="--ei-bg:{data.theme.colors.bg}; --ei-text:{data.theme.colors.text}; --ei-accent:{data.theme
-		.colors.accent}; --ei-muted:{data.theme.colors.muted}; --ei-font-display:{data.theme.fonts
-		.display}; --ei-font-body:{data.theme.fonts.body}"
+	style="--ei-bg:{surface.bg}; --ei-text:{surface.text}; --ei-accent:{data.theme.colors
+		.accent}; --ei-muted:{surface.muted}; --ei-font-display:{data.theme.fonts
+		.display}; --ei-font-body:{data.theme.fonts.body}; --ei-font-script:'Great Vibes', 'Amiri',
+	{data.theme.fonts.display}; --ei-font-caps:'Cinzel', 'Amiri', {data.theme.fonts.display}"
 >
 	{#if data.languages.length > 1 && !preview}
 		<nav class="langs" aria-label="Language">
@@ -136,26 +159,50 @@
 	}
 
 	.langs a {
+		display: inline-grid;
+		place-items: center;
+		min-width: 2rem;
+		height: 2rem;
+		padding-inline: 0.45rem;
 		color: var(--ei-muted);
 		text-decoration: none;
-		font-size: 0.78rem;
-		letter-spacing: 0.1em;
+		font-family: var(--ei-font-body);
+		font-size: 0.72rem;
+		letter-spacing: 0.16em;
 		text-transform: uppercase;
-		border-bottom: 1px solid color-mix(in srgb, var(--ei-muted) 40%, transparent);
+		border: 1px solid color-mix(in srgb, var(--ei-muted) 45%, transparent);
+		border-radius: 999px;
+		backdrop-filter: blur(6px);
+	}
+
+	:global([dir='rtl']) .langs a {
+		letter-spacing: 0;
 	}
 
 	/* Entrance reveal shared by all templates (class applied only when JS
 	   runs — see the inview action; no-JS guests always see content) */
 	.invite :global(.reveal) {
 		opacity: 0;
-		transform: translateY(16px);
+		transform: translateY(22px);
+		filter: blur(3px);
 		transition:
-			opacity 0.7s ease,
-			transform 0.7s ease;
+			opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1),
+			transform 0.9s cubic-bezier(0.16, 1, 0.3, 1),
+			filter 0.9s cubic-bezier(0.16, 1, 0.3, 1);
 	}
 
 	.invite :global(.reveal.in-view) {
 		opacity: 1;
 		transform: none;
+		filter: none;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.invite :global(.reveal) {
+			opacity: 1;
+			transform: none;
+			filter: none;
+			transition: none;
+		}
 	}
 </style>

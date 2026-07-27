@@ -51,52 +51,63 @@
 
 	.heading {
 		margin: 0;
-		font-size: 0.9rem;
-		font-weight: 600;
-		letter-spacing: 0.22em;
+		max-width: 17rem;
+		font-family: var(--ei-font-caps);
+		font-size: 0.78rem;
+		font-weight: 500;
+		letter-spacing: 0.28em;
+		text-indent: 0.28em;
+		text-transform: uppercase;
+		line-height: 2.1;
 		color: var(--ei-muted);
 	}
 
 	.grid {
 		display: flex;
-		gap: clamp(0.8rem, 4vw, 1.6rem);
+		align-items: flex-start;
 	}
 
 	.cell {
 		display: flex;
 		flex-direction: column;
-		gap: 0.4rem;
-		min-width: 3.6rem;
+		gap: 0.55rem;
+		min-width: 4.1rem;
+		padding-inline: clamp(0.5rem, 2.5vw, 1.1rem);
+	}
+
+	.cell + .cell {
+		border-inline-start: 1px solid color-mix(in srgb, var(--ei-accent) 30%, transparent);
 	}
 
 	.value {
-		font-family: var(--ei-font-display);
-		font-size: clamp(2.2rem, 8vw, 3.2rem);
+		font-family: var(--ei-font-caps);
+		font-weight: 400;
+		font-size: clamp(2rem, 7.5vw, 3rem);
 		line-height: 1;
 		font-variant-numeric: tabular-nums;
 		color: var(--ei-text);
 	}
 
 	.label {
-		font-size: 0.72rem;
-		letter-spacing: 0.14em;
+		font-family: var(--ei-font-body);
+		font-size: 0.66rem;
+		letter-spacing: 0.22em;
+		text-indent: 0.22em;
+		text-transform: uppercase;
 		color: var(--ei-accent);
 	}
 
 	.today {
 		margin: 0;
-		font-family: var(--ei-font-display);
-		font-size: 1.7rem;
+		font-family: var(--ei-font-script);
+		font-size: 2rem;
 		color: var(--ei-accent);
 	}
 
 	/* Arabic script takes no tracking — letterspacing breaks connected letters */
-	:global([dir='rtl']) .heading {
-		letter-spacing: 0;
-	}
-
-	/* Arabic script takes no tracking — letterspacing breaks connected letters */
+	:global([dir='rtl']) .heading,
 	:global([dir='rtl']) .label {
 		letter-spacing: 0;
+		text-indent: 0;
 	}
 </style>

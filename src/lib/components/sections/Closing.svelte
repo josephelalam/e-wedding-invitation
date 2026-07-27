@@ -5,7 +5,7 @@
 </script>
 
 <div class="content" use:inview>
-	<p class="mark" aria-hidden="true">{monogram}</p>
+	<p class="mark" aria-hidden="true"><span>{monogram}</span></p>
 	<p class="text">{text}</p>
 	<p class="colophon">einvite</p>
 </div>
@@ -16,27 +16,35 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: 1.4rem;
+		gap: 1.6rem;
 		max-width: 30rem;
 	}
 
 	.mark {
 		margin: 0;
-		width: 3.1rem;
-		height: 3.1rem;
+		width: 4rem;
+		height: 4rem;
 		display: grid;
 		place-items: center;
-		border: 1px solid color-mix(in srgb, var(--ei-accent) 60%, transparent);
+		border: 1px solid color-mix(in srgb, var(--ei-accent) 70%, transparent);
 		border-radius: 999px;
 		font-family: var(--ei-font-display);
 		color: var(--ei-accent);
 	}
 
+	.mark span {
+		display: grid;
+		place-items: center;
+		width: 3.3rem;
+		height: 3.3rem;
+		border: 1px solid color-mix(in srgb, var(--ei-accent) 35%, transparent);
+		border-radius: 999px;
+	}
+
 	.text {
 		margin: 0;
-		font-family: var(--ei-font-display);
-		font-style: italic;
-		font-size: 1.45rem;
+		font-family: var(--ei-font-script);
+		font-size: clamp(1.7rem, 6vw, 2.2rem);
 		line-height: 1.5;
 		text-wrap: balance;
 	}

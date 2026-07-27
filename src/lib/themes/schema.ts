@@ -5,6 +5,7 @@ export const SECTION_IDS = [
 	'countdown',
 	'locations',
 	'schedule',
+	'gifts',
 	'rsvp',
 	'closing'
 ] as const;
@@ -58,10 +59,13 @@ export type Theme = z.infer<typeof ThemeSchema>;
 export const DEFAULT_THEME: Theme = {
 	preset: 'classic',
 	template: 'slides',
-	colors: { bg: '#faf7f2', text: '#2d2a26', accent: '#a3785f', muted: '#8a857e' },
+	// The house look: ivory / ink / burnished gold — luxury stationery, not a web palette.
+	colors: { bg: '#faf7f1', text: '#23201c', accent: '#b8966e', muted: '#8f8577' },
+	// Self-hosted subsets (static/fonts + src/lib/styles/fonts.css, OFL): Cormorant
+	// carries latin display, Amiri carries Arabic; Jost is the quiet body/UI face.
 	fonts: {
-		display: "Georgia, 'Palatino Linotype', 'Noto Naskh Arabic', serif",
-		body: "system-ui, 'Segoe UI', 'Noto Sans Arabic', sans-serif"
+		display: "'Cormorant Garamond', 'Amiri', Georgia, 'Noto Naskh Arabic', serif",
+		body: "'Jost', system-ui, 'Segoe UI', 'Noto Sans Arabic', sans-serif"
 	},
 	slideOrder: [...DEFAULT_SLIDE_ORDER],
 	musicKey: null,

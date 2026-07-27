@@ -6,8 +6,9 @@
 
 	const theme = $derived(data.theme);
 	let previewNonce = $state(0);
-	// bind:group-controlled — a plain checked= would be reverted by re-renders
-	// svelte-ignore state_referenced_locally -- intentional: form state seeded once from load data
+	// bind:group-controlled — a plain checked= would be reverted by re-renders.
+	// Intentional local read: form state is seeded once from load data.
+	// svelte-ignore state_referenced_locally
 	let selectedTemplate = $state(data.theme.template as string);
 	const activeTemplate = $derived(selectedTemplate);
 
@@ -16,6 +17,7 @@
 		countdown: 'Countdown',
 		locations: 'Locations',
 		schedule: 'Extra dates',
+		gifts: 'Gift registry (shows when the gifts note is filled)',
 		rsvp: 'RSVP',
 		closing: 'Closing'
 	};
@@ -131,7 +133,7 @@
 								type="number"
 								name="order-{section}"
 								min="1"
-								max="6"
+								max={SECTION_IDS.length}
 								value={enabled ? order + 1 : SECTION_IDS.indexOf(section) + 1}
 								aria-label="Order of {SECTION_LABELS[section]}"
 							/>

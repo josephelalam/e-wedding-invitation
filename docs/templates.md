@@ -7,16 +7,26 @@ caching — so a new module is purely presentation work.
 
 ## Shipped modules
 
-| id          | Name              | Signature                                                         |
-| ----------- | ----------------- | ----------------------------------------------------------------- |
-| `slides`    | Envelope & Slides | cover → scroll-snap full-screen slides (the original)             |
-| `edges`     | Torn-Paper Story  | long scroll, photos torn like paper between cards, falling petals |
-| `cinematic` | Cinematic Reveal  | % loading curtain → full-bleed hero → fade-in panels              |
+| id          | Name             | Signature                                                                           |
+| ----------- | ---------------- | ----------------------------------------------------------------------------------- |
+| `slides`    | Signature Deck   | Ken Burns photo wall + scrim behind scroll-snap slides, monochrome ivory, dot rail  |
+| `edges`     | Torn-Paper Story | formal long scroll: verse → families → photos torn like paper between cards, petals |
+| `cinematic` | Cinematic Reveal | names-on-ink loading curtain → full-bleed breathing hero → gold-hairline panels     |
+
+## Look & feel (2026-07-27 uplift)
+
+Design spec: `docs/superpowers/specs/2026-07-27-template-visual-uplift-design.md`.
+Self-hosted OFL fonts (`static/fonts` + `src/lib/styles/fonts.css`): Cormorant
+Garamond (display), Great Vibes (script names), Cinzel (engraved caps/numerals),
+Amiri (Arabic naskh), Jost (body). Templates get them via `--ei-font-script` /
+`--ei-font-caps` from the dispatcher; theme fonts stay `--ei-font-display/body`.
 
 ## Photos (hard constraint #1 intact)
 
-Photo templates read `theme.images` — R2 keys under `theme/…`, **placed
-manually** (there is deliberately no upload UI):
+Every template is photo-dressed by default: when `theme.images` is empty it
+falls back to the bundled anonymous stock set in `src/lib/templates/stock.ts`
+(`static/photos/*.jpg`, Pexels license). Owner photos are `theme.images` — R2
+keys under `theme/…`, **placed manually** (there is deliberately no upload UI):
 
 ```bash
 npx wrangler r2 object put einvite-media/theme/<slug>/1.jpg --file photo.jpg --remote
@@ -40,11 +50,13 @@ with the pre-uploaded demo set: `theme/demo/1.svg` … `theme/demo/4.svg`.
    in `src/lib/templates/registry.ts` (name + tagline shown in the studio
    picker).
 4. Rules every module must keep: theme colors/fonts come from the `--ei-*`
-   CSS variables; `letter-spacing: 0` for RTL (Arabic never tracks); no
-   external origins (CSP is self + Turnstile only); content must render
+   CSS variables; `letter-spacing: 0` for RTL (Arabic never tracks — every
+   tracked-caps rule needs the `[dir='rtl']` reset, including `text-indent`);
+   no external origins (CSP is self + Turnstile only); content must render
    without JS (reveal classes are JS-added); music is an enhancement, never a
    gate; include an element with `data-section="rsvp"` and `id="slide-0"` as
-   the post-open scroll target.
+   the post-open scroll target. The `gifts` section renders only when the
+   owner filled the gifts note text.
 5. Seed a fixture event in `tests/seed/seed-e2e.ts` and add a spec to
    `tests/e2e/templates.spec.ts` asserting the module's signature elements +
    one RSVP round-trip.

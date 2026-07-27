@@ -19,22 +19,25 @@ export type TemplateMeta = {
 export const TEMPLATES: Record<TemplateId, TemplateMeta> = {
 	slides: {
 		id: 'slides',
-		name: 'Envelope & Slides',
-		tagline: 'Cover opens with music into full-screen swipeable slides — the classic.',
-		usesImages: false,
+		name: 'Signature Deck',
+		tagline:
+			'Full-screen slides over a slow-breathing photo wall — monochrome ivory, script names, the market signature.',
+		usesImages: true,
 		component: SlidesTemplate
 	},
 	edges: {
 		id: 'edges',
 		name: 'Torn-Paper Story',
-		tagline: 'A long scrolling story: photos with torn-paper edges between elegant cards.',
+		tagline:
+			'A formal scrolling story: verse, families, photos torn like paper between stationery cards, falling petals.',
 		usesImages: true,
 		component: EdgesTemplate
 	},
 	cinematic: {
 		id: 'cinematic',
 		name: 'Cinematic Reveal',
-		tagline: 'A loading curtain, a full-bleed photo hero, sections that fade in as you scroll.',
+		tagline:
+			'A names-on-ink loading curtain, a full-bleed breathing hero, editorial panels split by gold hairlines.',
 		usesImages: true,
 		component: CinematicTemplate
 	}

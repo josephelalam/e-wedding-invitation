@@ -7,6 +7,7 @@ import { submitRsvp, type RsvpError } from '$lib/server/services/rsvp';
 import { rateLimit } from '$lib/server/ratelimit';
 import { verifyTurnstile } from '$lib/server/turnstile';
 import { isLang, pickLang, LANGS, type Lang } from '$lib/i18n';
+import { resolveImageUrls } from '$lib/templates/stock';
 import type { Actions, PageServerLoad } from './$types';
 
 // Personalized-but-stable: each token URL is one cache entry at the edge, so
@@ -52,12 +53,17 @@ export const load: PageServerLoad = async ({ params, platform, setHeaders, url, 
 		year: 'numeric'
 	}).format(new Date(data.event.dateMain));
 
+	// The WhatsApp card: first owner photo, else the template's stock hero.
+	const ogImage = new URL(resolveImageUrls(data.theme)[0] ?? '/photos/field-walk.jpg', url.origin)
+		.href;
+
 	return {
 		invalid: false as const,
 		lang,
 		languages: supported,
 		pageTitle,
 		ogDescription,
+		ogImage,
 		event: data.event,
 		theme: data.theme,
 		locations: data.locations,

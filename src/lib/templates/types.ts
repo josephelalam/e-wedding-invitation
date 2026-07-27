@@ -26,6 +26,8 @@ export type TemplateCtx = {
 	dir: 'rtl' | 'ltr';
 	title: string;
 	dateFull: string;
+	/** The engraved date block: WEEKDAY / MONTH DD / YYYY between hairline rules. */
+	dateParts: { weekday: string; day: string; month: string; year: string };
 	monogram: string;
 	welcomeText: string | null;
 	closingText: string;

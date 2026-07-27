@@ -163,16 +163,19 @@
 
 	.heading {
 		margin: 0;
-		font-size: 0.9rem;
-		font-weight: 600;
-		letter-spacing: 0.22em;
+		font-family: var(--ei-font-caps);
+		font-size: 0.8rem;
+		font-weight: 500;
+		letter-spacing: 0.3em;
+		text-indent: 0.3em;
+		text-transform: uppercase;
 		color: var(--ei-muted);
 	}
 
 	.question {
 		margin: 0;
 		font-family: var(--ei-font-display);
-		font-size: 1.5rem;
+		font-size: 1.65rem;
 	}
 
 	.error {
@@ -198,11 +201,16 @@
 	}
 
 	.choice {
-		border: 1px solid color-mix(in srgb, var(--ei-accent) 35%, transparent);
-		border-radius: 10px;
-		padding: 0.9rem 0.6rem;
+		border: 1px solid color-mix(in srgb, var(--ei-accent) 40%, transparent);
+		border-radius: 2px;
+		padding: 1rem 0.6rem;
 		cursor: pointer;
-		font-size: 0.95rem;
+		font-family: var(--ei-font-body);
+		font-size: 0.92rem;
+		letter-spacing: 0.04em;
+		transition:
+			background-color 0.25s ease,
+			border-color 0.25s ease;
 	}
 
 	.choice input {
@@ -224,9 +232,11 @@
 	}
 
 	.label {
-		font-size: 0.78rem;
-		font-weight: 600;
-		letter-spacing: 0.12em;
+		font-family: var(--ei-font-body);
+		font-size: 0.72rem;
+		font-weight: 500;
+		letter-spacing: 0.18em;
+		text-transform: uppercase;
 		color: var(--ei-muted);
 	}
 
@@ -263,7 +273,7 @@
 	.stepper input {
 		width: 3.4rem;
 		text-align: center;
-		font-family: var(--ei-font-display);
+		font-family: var(--ei-font-caps);
 		font-size: 1.6rem;
 		border: none;
 		background: transparent;
@@ -292,9 +302,9 @@
 	.note textarea {
 		font: inherit;
 		font-size: 0.95rem;
-		padding: 0.6rem 0.8rem;
-		border-radius: 10px;
-		border: 1px solid color-mix(in srgb, var(--ei-accent) 30%, transparent);
+		padding: 0.7rem 0.9rem;
+		border-radius: 2px;
+		border: 1px solid color-mix(in srgb, var(--ei-accent) 35%, transparent);
 		background: color-mix(in srgb, var(--ei-bg) 60%, transparent);
 		color: var(--ei-text);
 		resize: vertical;
@@ -310,17 +320,23 @@
 	}
 
 	.submit {
-		font: inherit;
-		font-size: 0.85rem;
-		font-weight: 600;
-		letter-spacing: 0.2em;
+		font-family: var(--ei-font-body);
+		font-size: 0.78rem;
+		font-weight: 500;
+		letter-spacing: 0.28em;
+		text-indent: 0.28em;
 		text-transform: uppercase;
 		color: var(--ei-bg);
 		background: var(--ei-accent);
 		border: none;
-		border-radius: 999px;
-		padding: 0.95rem 2rem;
+		border-radius: 2px;
+		padding: 1.05rem 2rem;
 		cursor: pointer;
+		transition: filter 0.25s ease;
+	}
+
+	.submit:hover {
+		filter: brightness(1.08);
 	}
 
 	.submit:disabled {
@@ -377,17 +393,10 @@
 	}
 
 	/* Arabic script takes no tracking — letterspacing breaks connected letters */
-	:global([dir='rtl']) .heading {
-		letter-spacing: 0;
-	}
-
-	/* Arabic script takes no tracking — letterspacing breaks connected letters */
-	:global([dir='rtl']) .label {
-		letter-spacing: 0;
-	}
-
-	/* Arabic script takes no tracking — letterspacing breaks connected letters */
+	:global([dir='rtl']) .heading,
+	:global([dir='rtl']) .label,
 	:global([dir='rtl']) .submit {
 		letter-spacing: 0;
+		text-indent: 0;
 	}
 </style>

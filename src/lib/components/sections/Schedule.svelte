@@ -37,10 +37,13 @@
 	}
 
 	.heading {
-		margin: 0 0 1.6rem;
-		font-size: 0.9rem;
-		font-weight: 600;
-		letter-spacing: 0.22em;
+		margin: 0 0 2rem;
+		font-family: var(--ei-font-caps);
+		font-size: 0.8rem;
+		font-weight: 500;
+		letter-spacing: 0.3em;
+		text-indent: 0.3em;
+		text-transform: uppercase;
 		color: var(--ei-muted);
 	}
 
@@ -50,29 +53,35 @@
 		padding: 0;
 		display: flex;
 		flex-direction: column;
-		gap: 1rem;
 	}
 
 	.entry {
-		border: 1px solid color-mix(in srgb, var(--ei-accent) 30%, transparent);
-		border-radius: 10px;
-		padding: 1rem 1.2rem;
+		padding: 1.3rem 1.2rem;
+	}
+
+	.entry + .entry {
+		border-top: 1px solid color-mix(in srgb, var(--ei-accent) 30%, transparent);
 	}
 
 	.label {
-		margin: 0 0 0.2rem;
+		margin: 0 0 0.35rem;
 		font-family: var(--ei-font-display);
-		font-size: 1.2rem;
+		font-size: 1.4rem;
 	}
 
 	.when {
 		margin: 0;
+		font-family: var(--ei-font-caps);
 		color: var(--ei-muted);
-		font-size: 0.95rem;
+		font-size: 0.88rem;
+		letter-spacing: 0.08em;
+		font-variant-numeric: tabular-nums;
 	}
 
 	/* Arabic script takes no tracking — letterspacing breaks connected letters */
-	:global([dir='rtl']) .heading {
+	:global([dir='rtl']) .heading,
+	:global([dir='rtl']) .when {
 		letter-spacing: 0;
+		text-indent: 0;
 	}
 </style>

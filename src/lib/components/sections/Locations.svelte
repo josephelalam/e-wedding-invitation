@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { inview } from '$lib/actions/inview';
+	import Icon from './Icon.svelte';
 	import { t, type Lang } from '$lib/i18n';
 
 	type LocationRow = {
@@ -48,17 +49,15 @@
 	<ol class="stops">
 		{#each locations as location (location.id)}
 			<li class="stop">
-				<div class="marker" aria-hidden="true"></div>
-				<div class="body">
-					<p class="kind">{t(lang, `locations.kind.${location.kind}`)}</p>
-					<p class="name">{label(location)}</p>
-					{#if timeOf(location)}<p class="time">{timeOf(location)}</p>{/if}
-					{#if location.mapsUrl}
-						<a class="maps" href={location.mapsUrl} target="_blank" rel="noopener noreferrer">
-							{t(lang, 'locations.open_maps')} ↗
-						</a>
-					{/if}
-				</div>
+				<span class="badge"><Icon name={location.kind} /></span>
+				<p class="kind">{t(lang, `locations.kind.${location.kind}`)}</p>
+				<p class="name">{label(location)}</p>
+				{#if timeOf(location)}<p class="time">{timeOf(location)}</p>{/if}
+				{#if location.mapsUrl}
+					<a class="maps" href={location.mapsUrl} target="_blank" rel="noopener noreferrer">
+						{t(lang, 'locations.open_maps')}
+					</a>
+				{/if}
 			</li>
 		{/each}
 	</ol>
@@ -70,11 +69,14 @@
 	}
 
 	.heading {
-		margin: 0 0 1.6rem;
+		margin: 0 0 2.2rem;
 		text-align: center;
-		font-size: 0.9rem;
-		font-weight: 600;
-		letter-spacing: 0.22em;
+		font-family: var(--ei-font-caps);
+		font-size: 0.8rem;
+		font-weight: 500;
+		letter-spacing: 0.3em;
+		text-indent: 0.3em;
+		text-transform: uppercase;
 		color: var(--ei-muted);
 	}
 
@@ -84,71 +86,92 @@
 		padding: 0;
 		display: flex;
 		flex-direction: column;
+		gap: 2.4rem;
 	}
 
 	.stop {
-		position: relative;
-		display: flex;
-		gap: 1rem;
-		padding-block: 0 1.7rem;
-	}
-
-	.stop:last-child {
-		padding-block-end: 0;
-	}
-
-	.marker {
-		flex: none;
-		width: 0.65rem;
-		height: 0.65rem;
-		margin-block-start: 0.45rem;
-		border-radius: 999px;
-		border: 1.5px solid var(--ei-accent);
-	}
-
-	.stop:not(:last-child) .marker::after {
-		content: '';
-		position: absolute;
-		inset-block: 1.2rem 0.2rem;
-		inset-inline-start: 0.28rem;
-		width: 1px;
-		background: color-mix(in srgb, var(--ei-accent) 35%, transparent);
-	}
-
-	.body {
 		display: flex;
 		flex-direction: column;
-		gap: 0.15rem;
+		align-items: center;
+		gap: 0.4rem;
+		text-align: center;
+	}
+
+	/* separator flourish between stops — a hairline growing from a diamond */
+	.stop + .stop {
+		position: relative;
+		padding-top: 2.4rem;
+	}
+
+	.stop + .stop::before {
+		content: '';
+		position: absolute;
+		top: 0;
+		inset-inline: 30%;
+		height: 1px;
+		background: linear-gradient(
+			to right,
+			transparent,
+			color-mix(in srgb, var(--ei-accent) 40%, transparent),
+			transparent
+		);
+	}
+
+	.badge {
+		display: grid;
+		place-items: center;
+		width: 3.6rem;
+		height: 3.6rem;
+		margin-bottom: 0.5rem;
+		border: 1px solid color-mix(in srgb, var(--ei-accent) 45%, transparent);
+		border-radius: 999px;
+		color: var(--ei-accent);
 	}
 
 	.kind {
 		margin: 0;
-		font-size: 0.72rem;
-		font-weight: 600;
-		letter-spacing: 0.18em;
+		font-family: var(--ei-font-body);
+		font-size: 0.68rem;
+		font-weight: 500;
+		letter-spacing: 0.26em;
+		text-indent: 0.26em;
+		text-transform: uppercase;
 		color: var(--ei-accent);
 	}
 
 	.name {
 		margin: 0;
 		font-family: var(--ei-font-display);
-		font-size: 1.25rem;
+		font-size: 1.45rem;
+		line-height: 1.35;
+		text-wrap: balance;
 	}
 
 	.time {
 		margin: 0;
+		font-family: var(--ei-font-caps);
+		font-size: 0.95rem;
 		color: var(--ei-muted);
 		font-variant-numeric: tabular-nums;
 	}
 
 	.maps {
-		margin-block-start: 0.35rem;
-		align-self: flex-start;
-		font-size: 0.85rem;
-		color: var(--ei-accent);
+		margin-top: 0.7rem;
+		font-family: var(--ei-font-body);
+		font-size: 0.7rem;
+		font-weight: 500;
+		letter-spacing: 0.22em;
+		text-indent: 0.22em;
+		text-transform: uppercase;
+		color: inherit;
 		text-decoration: none;
-		border-bottom: 1px solid color-mix(in srgb, var(--ei-accent) 50%, transparent);
-		padding-block-end: 1px;
+		border: 1px solid color-mix(in srgb, currentColor 40%, transparent);
+		padding: 0.6rem 1.4rem;
+		transition: background-color 0.3s ease;
+	}
+
+	.maps:hover {
+		background: color-mix(in srgb, currentColor 10%, transparent);
 	}
 
 	.maps:focus-visible {
@@ -157,12 +180,10 @@
 	}
 
 	/* Arabic script takes no tracking — letterspacing breaks connected letters */
-	:global([dir='rtl']) .heading {
+	:global([dir='rtl']) .heading,
+	:global([dir='rtl']) .kind,
+	:global([dir='rtl']) .maps {
 		letter-spacing: 0;
-	}
-
-	/* Arabic script takes no tracking — letterspacing breaks connected letters */
-	:global([dir='rtl']) .kind {
-		letter-spacing: 0;
+		text-indent: 0;
 	}
 </style>

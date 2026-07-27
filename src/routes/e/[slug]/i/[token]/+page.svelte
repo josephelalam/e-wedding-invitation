@@ -18,6 +18,7 @@
 		<meta property="og:title" content={data.pageTitle} />
 		<meta property="og:description" content={data.ogDescription} />
 		<meta property="og:type" content="website" />
+		<meta property="og:image" content={data.ogImage} />
 		{#if data.turnstileSiteKey}
 			<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 		{/if}
