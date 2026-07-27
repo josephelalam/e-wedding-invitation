@@ -2,7 +2,11 @@
 	import { inview } from '$lib/actions/inview';
 	import { t, type Lang } from '$lib/i18n';
 
-	let { targetIso, lang }: { targetIso: string; lang: Lang } = $props();
+	let {
+		targetIso,
+		lang,
+		layout = 'grid'
+	}: { targetIso: string; lang: Lang; layout?: 'grid' | 'rows' } = $props();
 
 	const target = $derived(new Date(targetIso).getTime());
 	let now = $state(Date.now());
@@ -28,6 +32,16 @@
 	<h2 class="heading">{t(lang, 'countdown.title')}</h2>
 	{#if remaining === 0}
 		<p class="today">{t(lang, 'countdown.today')}</p>
+	{:else if layout === 'rows'}
+		<!-- engraved ledger rows — the horizontal deck's signature countdown -->
+		<div class="rows" role="timer">
+			{#each parts as part (part.label)}
+				<div class="row">
+					<span class="row-label">{part.label}</span>
+					<span class="row-value">{String(part.value).padStart(2, '0')}</span>
+				</div>
+			{/each}
+		</div>
 	{:else}
 		<div class="grid" role="timer">
 			{#each parts as part (part.label)}
@@ -102,6 +116,40 @@
 		font-family: var(--ei-font-script);
 		font-size: 2rem;
 		color: var(--ei-accent);
+	}
+
+	.rows {
+		width: min(19rem, 100%);
+		display: flex;
+		flex-direction: column;
+	}
+
+	.row {
+		display: flex;
+		align-items: baseline;
+		justify-content: space-between;
+		gap: 1.5rem;
+		padding-block: 0.8rem;
+		border-bottom: 1px solid color-mix(in srgb, currentColor 22%, transparent);
+	}
+
+	.row-label {
+		font-family: var(--ei-font-body);
+		font-size: 0.68rem;
+		letter-spacing: 0.28em;
+		text-transform: uppercase;
+		color: var(--ei-muted);
+	}
+
+	.row-value {
+		font-family: var(--ei-font-caps);
+		font-size: 2.1rem;
+		line-height: 1;
+		font-variant-numeric: tabular-nums;
+	}
+
+	:global([dir='rtl']) .row-label {
+		letter-spacing: 0;
 	}
 
 	/* Arabic script takes no tracking — letterspacing breaks connected letters */

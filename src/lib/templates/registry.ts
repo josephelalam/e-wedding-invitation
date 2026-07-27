@@ -35,9 +35,9 @@ export const TEMPLATES: Record<TemplateId, TemplateMeta> = {
 	},
 	cinematic: {
 		id: 'cinematic',
-		name: 'Cinematic Reveal',
+		name: 'Horizon — Sideways Story',
 		tagline:
-			'A names-on-ink loading curtain, a full-bleed breathing hero, editorial panels split by gold hairlines.',
+			'Swipe sideways through full-screen scenes over a breathing photo wall — formal invitation, countdown ledger, venues, a tilted polaroid finale.',
 		usesImages: true,
 		component: CinematicTemplate
 	}

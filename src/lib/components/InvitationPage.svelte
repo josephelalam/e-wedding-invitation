@@ -86,11 +86,11 @@
 
 	const Template = $derived((TEMPLATES[data.theme.template] ?? TEMPLATES.slides).component);
 
-	// The slides deck lives entirely over photography: it takes monochrome
+	// The deck templates live entirely over photography: they take monochrome
 	// ivory surfaces (the references prove zero-brand-color is the premium
 	// look there) while --ei-accent still carries the couple's theme.
 	const surface = $derived(
-		data.theme.template === 'slides'
+		data.theme.template === 'slides' || data.theme.template === 'cinematic'
 			? { bg: '#181410', text: '#f9f5ed', muted: '#cfc4b2' }
 			: data.theme.colors
 	);

@@ -7,11 +7,11 @@ caching — so a new module is purely presentation work.
 
 ## Shipped modules
 
-| id          | Name             | Signature                                                                           |
-| ----------- | ---------------- | ----------------------------------------------------------------------------------- |
-| `slides`    | Signature Deck   | Ken Burns photo wall + scrim behind scroll-snap slides, monochrome ivory, dot rail  |
-| `edges`     | Torn-Paper Story | formal long scroll: verse → families → photos torn like paper between cards, petals |
-| `cinematic` | Cinematic Reveal | names-on-ink loading curtain → full-bleed breathing hero → gold-hairline panels     |
+| id          | Name             | Signature                                                                            |
+| ----------- | ---------------- | ------------------------------------------------------------------------------------ |
+| `slides`    | Signature Deck   | Ken Burns photo wall + scrim behind scroll-snap slides, monochrome ivory, dot rail   |
+| `edges`     | Torn-Paper Story | formal long scroll: verse → families → photos torn like paper between cards, petals  |
+| `cinematic` | Horizon          | horizontal scroll-snap deck: cover gate → formal scene → countdown ledger → polaroid |
 
 ## Look & feel (2026-07-27 uplift)
 

@@ -1,7 +1,12 @@
 {
 	"cover": {
 		"dear": "Pour {name}",
-		"open": "Ouvrir l'invitation"
+		"open": "Ouvrir l'invitation",
+		"swipe": "Glissez pour découvrir"
+	},
+	"nav": {
+		"prev": "Précédent",
+		"next": "Suivant"
 	},
 	"countdown": {
 		"title": "Compte à rebours avant le grand jour",

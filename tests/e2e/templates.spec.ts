@@ -33,17 +33,26 @@ test.describe('edges template (torn-paper story)', () => {
 	});
 });
 
-test.describe('cinematic template', () => {
-	test('shows the loading curtain, then the hero, then sections', async ({ page }) => {
+test.describe('cinematic template (Horizon — horizontal deck)', () => {
+	test('cover gate opens into a horizontal scroll-snap deck of scenes', async ({ page }) => {
 		await page.goto(`/e/${E2E.cineSlug}/i/${E2E.tokens.cine}`);
 
-		// the curtain must always clear on its own — never trap a guest
-		// (locally the placeholder photos load instantly, so it may already be gone)
-		await expect(page.locator('.curtain')).toBeHidden({ timeout: 10_000 });
-
+		// the cover gate: personalized, one button, deck locked behind it
 		await expect(page.getByText('For Sara')).toBeVisible();
 		await page.getByRole('button', { name: 'Open Invitation' }).click();
+
+		// signature: a horizontal track of full-screen scenes with a dot rail
 		await expect(page.getByText('Two stories becoming one.')).toBeVisible();
+		const scenes = page.locator('.track .scene');
+		expect(await scenes.count()).toBeGreaterThanOrEqual(4);
+		const dots = page.locator('.dots button');
+		expect(await dots.count()).toBe(await scenes.count());
+
+		// the track scrolls sideways, not down
+		const overflow = await page.locator('.track').evaluate((el) => getComputedStyle(el).overflowX);
+		expect(overflow).toBe('auto');
+
+		// horizontal navigation reaches the RSVP scene
 		await page.locator('[data-section="rsvp"]').scrollIntoViewIfNeeded();
 		await expect(page.locator('[data-section="rsvp"]')).toBeVisible();
 	});

@@ -1,7 +1,12 @@
 {
 	"cover": {
 		"dear": "For {name}",
-		"open": "Open Invitation"
+		"open": "Open Invitation",
+		"swipe": "Swipe to explore"
+	},
+	"nav": {
+		"prev": "Previous",
+		"next": "Next"
 	},
 	"countdown": {
 		"title": "Counting down to the big day",

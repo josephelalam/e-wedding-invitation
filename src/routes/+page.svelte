@@ -13,8 +13,8 @@
 			photo: '/photos/rings-veil.jpg'
 		},
 		{
-			name: 'Cinematic Reveal',
-			line: 'A names-on-ink curtain, a full-bleed breathing hero, editorial gold hairlines.',
+			name: 'Horizon',
+			line: 'A sideways story — swipe through full-screen scenes to a tilted polaroid finale.',
 			photo: '/photos/beach-sunset.jpg'
 		}
 	];
