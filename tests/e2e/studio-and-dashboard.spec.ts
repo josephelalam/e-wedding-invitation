@@ -119,3 +119,28 @@ test.describe('couple magic-link login + dashboard + export', () => {
 		await coupleContext.close();
 	});
 });
+
+test.describe('studio media uploads (policy: owner-only, theme tab)', () => {
+	test('owner uploads photos and manages them from Photos & Video', async ({ page }) => {
+		await ownerSignIn(page);
+		await page.goto(`/studio/events/${E2E.eventId}/theme`);
+		await page.getByRole('button', { name: 'Photos & Video' }).click();
+
+		// upload two images through the real form
+		await page
+			.locator('input[name="photos"]')
+			.setInputFiles(['tests/fixtures/placeholder-1.svg', 'tests/fixtures/placeholder-2.svg']);
+		await page.getByRole('button', { name: 'Upload photos' }).click();
+		await expect(page.getByText('2 photos uploaded.')).toBeVisible();
+		await expect(page.locator('.thumb')).toHaveCount(2);
+
+		// remove one — the grid and the stored theme both shrink
+		await page.getByRole('button', { name: 'Remove photo 1' }).click();
+		await expect(page.getByText('Photo removed.')).toBeVisible();
+		await expect(page.locator('.thumb')).toHaveCount(1);
+
+		// clean up so re-runs and other specs see the seeded state
+		await page.getByRole('button', { name: 'Remove photo 1' }).click();
+		await expect(page.locator('.thumb')).toHaveCount(0);
+	});
+});

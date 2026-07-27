@@ -38,19 +38,19 @@ Garamond (display), Great Vibes (script names), Cinzel (engraved caps/numerals),
 Amiri (Arabic naskh), Jost (body). Templates get them via `--ei-font-script` /
 `--ei-font-caps` from the dispatcher; theme fonts stay `--ei-font-display/body`.
 
-## Photos (hard constraint #1 intact)
+## Photos & video (upload policy, owner-revised 2026-07-28)
 
 Every template is photo-dressed by default: when `theme.images` is empty it
 falls back to the bundled anonymous stock set in `src/lib/templates/stock.ts`
-(`static/photos/*.jpg`, Pexels license). Owner photos are `theme.images` — R2
-keys under `theme/…`, **placed manually** (there is deliberately no upload UI):
+(`static/photos/*.jpg`, Pexels license).
 
-```bash
-npx wrangler r2 object put einvite-media/theme/<slug>/1.jpg --file photo.jpg --remote
-```
-
-Then list the keys in Studio → Theme → Photos (one per line). Try instantly
-with the pre-uploaded demo set: `theme/demo/1.svg` … `theme/demo/4.svg`.
+The owner uploads the couple's media in **Studio → event → Theme → Photos &
+Video**: photos (JPG/PNG/WebP ≤ 8 MB, max 12, with reorder + remove) and the
+deck layouts' background video (MP4/WebM ≤ 30 MB). Uploads land in R2 under
+`theme/<slug>/…` via owner-guarded form actions and update `theme.images` /
+`theme.videoKey` instantly. This capability exists **only** in the studio —
+guests and couples never get a file input (`tests/unit/no-photo-upload.test.ts`
+enforces it). `wrangler r2 object put` still works for bulk/manual placement.
 
 ## Adding a new module
 
