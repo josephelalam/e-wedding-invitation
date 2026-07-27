@@ -44,7 +44,10 @@ export const actions: Actions = {
 				musicKey: current.musicKey,
 				monogram: current.monogram,
 				images: current.images,
+				videoKey: current.videoKey,
 				rsvpDeadline: current.rsvpDeadline,
+				giftsAccountLabel: current.giftsAccountLabel,
+				giftsAccount: current.giftsAccount,
 				texts: current.texts
 			};
 		} else {
@@ -94,7 +97,10 @@ export const actions: Actions = {
 				musicKey: String(form.get('musicKey') ?? '') || null,
 				monogram: String(form.get('monogram') ?? '').trim() || null,
 				images,
+				videoKey: String(form.get('videoKey') ?? '').trim() || null,
 				rsvpDeadline: String(form.get('rsvpDeadline') ?? '').trim() || null,
+				giftsAccountLabel: String(form.get('giftsAccountLabel') ?? '').trim() || null,
+				giftsAccount: String(form.get('giftsAccount') ?? '').trim() || null,
 				texts
 			};
 		}

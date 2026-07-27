@@ -36,6 +36,8 @@ export type TemplateCtx = {
 	giftsText: string | null;
 	endCaptionText: string | null;
 	imageUrls: string[];
+	/** Owner-placed background video (deck layouts); photos stay the fallback. */
+	videoUrl: string | null;
 	rsvpIsClosed: boolean;
 };
 

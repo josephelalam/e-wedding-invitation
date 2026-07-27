@@ -3,7 +3,7 @@ import { asc, eq } from 'drizzle-orm';
 import { getDb } from '$lib/server/db';
 import { events, locations } from '$lib/server/db/schema';
 import { requireOwner } from '$lib/server/guards';
-import { parseTheme, DEFAULT_THEME } from '$lib/themes/schema';
+import { parseTheme, DEFAULT_THEME, TEMPLATE_IDS, type TemplateId } from '$lib/themes/schema';
 import { isLang, type Lang } from '$lib/i18n';
 import type { PageServerLoad } from './$types';
 
@@ -23,6 +23,13 @@ export const load: PageServerLoad = async ({ params, platform, locals, url, setH
 	} catch {
 		theme = DEFAULT_THEME;
 	}
+
+	// The studio picker previews a layout switch instantly, before saving.
+	const templateOverride = url.searchParams.get('template');
+	if (templateOverride && (TEMPLATE_IDS as readonly string[]).includes(templateOverride)) {
+		theme = { ...theme, template: templateOverride as TemplateId };
+	}
+
 	const supported = event.languages.filter(isLang);
 	const urlLang = url.searchParams.get('lang');
 	const lang: Lang =

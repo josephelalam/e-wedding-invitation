@@ -48,6 +48,21 @@ test.describe('cinematic template (Horizon — horizontal deck)', () => {
 		const dots = page.locator('.dots button');
 		expect(await dots.count()).toBe(await scenes.count());
 
+		// the getting-ready scene (groom's + bride's houses) always precedes the
+		// ceremony scene, even though the fixture stores the ceremony first
+		const locationScenes = page.locator('.scene[data-section="locations"]');
+		await expect(locationScenes.nth(0)).toContainText('Cine Groom Home');
+		await expect(locationScenes.nth(0)).toContainText('Cine Bride Home');
+		await expect(locationScenes.nth(1)).toContainText('Cine Cathedral');
+
+		// the gifts scene carries the engraved account with its copy button
+		const gifts = page.locator('.scene[data-section="gifts"]');
+		await expect(gifts).toContainText('81 234 567');
+		await expect(gifts.getByRole('button', { name: 'Copy number' })).toBeAttached();
+
+		// the moving swipe caption is chrome at the bottom of the deck
+		await expect(page.locator('.hint')).toBeAttached();
+
 		// the track scrolls sideways, not down
 		const overflow = await page.locator('.track').evaluate((el) => getComputedStyle(el).overflowX);
 		expect(overflow).toBe('auto');

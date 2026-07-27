@@ -115,6 +115,8 @@
 		}
 	},
 	"gifts": {
-		"title": "Cadeaux"
+		"title": "Cadeaux",
+		"copy": "Copier le numéro",
+		"copied": "Copié"
 	}
 }

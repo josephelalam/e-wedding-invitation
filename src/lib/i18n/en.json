@@ -115,6 +115,8 @@
 		}
 	},
 	"gifts": {
-		"title": "Gifts"
+		"title": "Gifts",
+		"copy": "Copy number",
+		"copied": "Copied"
 	}
 }

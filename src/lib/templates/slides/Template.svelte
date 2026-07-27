@@ -5,6 +5,7 @@
 	import Locations from '$lib/components/sections/Locations.svelte';
 	import Schedule from '$lib/components/sections/Schedule.svelte';
 	import Icon from '$lib/components/sections/Icon.svelte';
+	import GiftAccount from '$lib/components/sections/GiftAccount.svelte';
 	import RsvpBlock from '$lib/templates/shared/RsvpBlock.svelte';
 	import Closing from '$lib/components/sections/Closing.svelte';
 	import Slideshow from '$lib/templates/shared/Slideshow.svelte';
@@ -21,7 +22,7 @@
 		data.theme.slideOrder.filter((section) => {
 			if (section === 'locations') return data.locations.length > 0;
 			if (section === 'schedule') return data.event.datesExtra.length > 0;
-			if (section === 'gifts') return Boolean(ctx.giftsText);
+			if (section === 'gifts') return Boolean(ctx.giftsText) || Boolean(data.theme.giftsAccount);
 			return true;
 		})
 	);
@@ -52,7 +53,7 @@
 </script>
 
 <div class="deck">
-	<Slideshow images={ctx.imageUrls} scrim={0.5} />
+	<Slideshow images={ctx.imageUrls} videoUrl={ctx.videoUrl} scrim={0.5} />
 
 	<div class="scroller" class:locked={!opened} bind:this={scroller}>
 		<Cover
@@ -79,7 +80,14 @@
 					<div class="gifts">
 						<span class="gift-badge"><Icon name="gift" /></span>
 						<h2 class="gift-heading">{t(ctx.lang, 'gifts.title')}</h2>
-						<p class="gift-text">{ctx.giftsText}</p>
+						{#if ctx.giftsText}<p class="gift-text">{ctx.giftsText}</p>{/if}
+						{#if data.theme.giftsAccount}
+							<GiftAccount
+								label={data.theme.giftsAccountLabel}
+								account={data.theme.giftsAccount}
+								lang={ctx.lang}
+							/>
+						{/if}
 					</div>
 				{:else if section === 'rsvp'}
 					<div class="glass">

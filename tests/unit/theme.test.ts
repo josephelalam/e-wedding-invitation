@@ -79,6 +79,24 @@ describe('template module system', () => {
 		expect(() => parseTheme({ images: ['https://evil.example/x.jpg'] })).toThrow();
 	});
 
+	it('carries the gift account and background video key, defaulting to null', () => {
+		const theme = parseTheme({
+			giftsAccountLabel: 'Whish Money',
+			giftsAccount: '03 123 456',
+			videoKey: 'theme/ev1/bg.mp4'
+		});
+		expect(theme.giftsAccountLabel).toBe('Whish Money');
+		expect(theme.giftsAccount).toBe('03 123 456');
+		expect(theme.videoKey).toBe('theme/ev1/bg.mp4');
+		expect(parseTheme({}).giftsAccount).toBeNull();
+		expect(parseTheme({}).giftsAccountLabel).toBeNull();
+		expect(parseTheme({}).videoKey).toBeNull();
+	});
+
+	it('rejects a background video outside theme/ (CSP media-src is self)', () => {
+		expect(() => parseTheme({ videoKey: 'https://evil.example/x.mp4' })).toThrow();
+	});
+
 	it('carries the extended template texts and rsvp deadline', () => {
 		const theme = parseTheme({
 			rsvpDeadline: '2026-09-01',

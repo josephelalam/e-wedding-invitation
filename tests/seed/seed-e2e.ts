@@ -55,7 +55,12 @@ const cineTheme = {
 	template: 'cinematic',
 	colors: { bg: '#141221', text: '#f4efe9', accent: '#d4af6a', muted: '#8d89a3' },
 	images: ['theme/e2e/1.svg', 'theme/e2e/2.svg'],
-	texts: { intro: { en: 'Two stories becoming one.' } }
+	giftsAccountLabel: 'Whish Money',
+	giftsAccount: '81 234 567',
+	texts: {
+		intro: { en: 'Two stories becoming one.' },
+		gifts: { en: 'Your presence is the greatest gift.' }
+	}
 };
 
 const statements = [
@@ -70,7 +75,11 @@ VALUES (${q(E2E.edgesEventId)}, ${q(E2E.edgesSlug)}, 'wedding', 'Rita & Tony', $
  (${q(E2E.cineEventId)}, ${q(E2E.cineSlug)}, 'wedding', 'Nour & Omar', ${q('نور وعمر')}, 'Nour & Omar',
  '2027-09-18T18:00', '[]', ${q(JSON.stringify(cineTheme))}, '["en","fr"]', 'live', 'pending', 6, ${q(now)}, ${q(now)});`,
 	`INSERT INTO locations (id, event_id, kind, label_en, maps_url, starts_at, sort) VALUES
- ('loc_e2e_edges1', ${q(E2E.edgesEventId)}, 'ceremony', 'Edges Chapel', 'https://maps.app.goo.gl/edges1', '2027-08-14T17:00', 1);`,
+ ('loc_e2e_edges1', ${q(E2E.edgesEventId)}, 'ceremony', 'Edges Chapel', 'https://maps.app.goo.gl/edges1', '2027-08-14T17:00', 1),
+ ('loc_e2e_cine1', ${q(E2E.cineEventId)}, 'ceremony', 'Cine Cathedral', 'https://maps.app.goo.gl/cine1', '2027-09-18T18:00', 1),
+ ('loc_e2e_cine2', ${q(E2E.cineEventId)}, 'house_groom', 'Cine Groom Home', 'https://maps.app.goo.gl/cine2', '2027-09-18T14:00', 2),
+ ('loc_e2e_cine3', ${q(E2E.cineEventId)}, 'house_bride', 'Cine Bride Home', 'https://maps.app.goo.gl/cine3', '2027-09-18T15:00', 3),
+ ('loc_e2e_cine4', ${q(E2E.cineEventId)}, 'reception', 'Cine Ballroom', 'https://maps.app.goo.gl/cine4', '2027-09-18T20:00', 4);`,
 	`INSERT INTO invitations (id, event_id, token, guest_label, max_seats, phone, lang, group_tag, revoked, created_at) VALUES
  ('inv_e2e_edges', ${q(E2E.edgesEventId)}, ${q(E2E.tokens.edges)}, 'Fadi & Nadine', 2, NULL, 'en', NULL, 0, ${q(now)}),
  ('inv_e2e_cine', ${q(E2E.cineEventId)}, ${q(E2E.tokens.cine)}, 'Sara', 1, NULL, 'en', NULL, 0, ${q(now)});`,

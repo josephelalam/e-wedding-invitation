@@ -3,7 +3,7 @@
 	import AudioPlayer from '$lib/components/AudioPlayer.svelte';
 	import { t, dirFor } from '$lib/i18n';
 	import { TEMPLATES } from '$lib/templates/registry';
-	import { resolveText, rsvpClosed } from '$lib/templates/context';
+	import { resolveText, mediaUrl, rsvpClosed } from '$lib/templates/context';
 	import { resolveImageUrls } from '$lib/templates/stock';
 	import type { InviteData, TemplateCtx } from '$lib/templates/types';
 	import type { RsvpView } from '$lib/types';
@@ -81,6 +81,7 @@
 		giftsText: resolveText(data.theme.texts.gifts, lang),
 		endCaptionText: resolveText(data.theme.texts.endCaption, lang),
 		imageUrls: resolveImageUrls(data.theme),
+		videoUrl: data.theme.videoKey ? mediaUrl(data.theme.videoKey) : null,
 		rsvpIsClosed: rsvpClosed(data.theme.rsvpDeadline)
 	});
 

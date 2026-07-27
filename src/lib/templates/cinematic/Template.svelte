@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Countdown from '$lib/components/sections/Countdown.svelte';
-	import Schedule from '$lib/components/sections/Schedule.svelte';
+	import GiftAccount from '$lib/components/sections/GiftAccount.svelte';
 	import Icon from '$lib/components/sections/Icon.svelte';
 	import RsvpBlock from '$lib/templates/shared/RsvpBlock.svelte';
 	import Slideshow from '$lib/templates/shared/Slideshow.svelte';
@@ -17,20 +17,29 @@
 	let { data, ctx, currentRsvp, errorKey, preview, opened, onopen }: TemplateProps = $props();
 
 	type Scene =
-		| { key: string; kind: 'formal' | 'countdown' | 'schedule' | 'gifts' | 'rsvp' | 'closing' }
+		| { key: string; kind: 'formal' | 'countdown' | 'gifts' | 'rsvp' | 'closing' }
 		| { key: string; kind: 'locations'; pair: InviteLocation[] };
 
 	const scenes: Scene[] = $derived.by(() => {
-		const pairs: InviteLocation[][] = [];
-		for (let i = 0; i < data.locations.length; i += 2) {
-			pairs.push(data.locations.slice(i, i + 2));
+		// The getting-ready ritual gets its own scene: groom's and bride's
+		// houses always lead, before the ceremony — whatever the stored sort.
+		const houses = data.locations.filter(
+			(location) => location.kind === 'house_groom' || location.kind === 'house_bride'
+		);
+		const day = data.locations.filter(
+			(location) => location.kind !== 'house_groom' && location.kind !== 'house_bride'
+		);
+		const pairs: InviteLocation[][] = houses.length > 0 ? [houses] : [];
+		for (let i = 0; i < day.length; i += 2) {
+			pairs.push(day.slice(i, i + 2));
 		}
 		return [
 			{ key: 'formal', kind: 'formal' as const },
 			{ key: 'countdown', kind: 'countdown' as const },
 			...pairs.map((pair, i) => ({ key: `locations-${i}`, kind: 'locations' as const, pair })),
-			...(data.event.datesExtra.length > 0 ? [{ key: 'schedule', kind: 'schedule' as const }] : []),
-			...(ctx.giftsText ? [{ key: 'gifts', kind: 'gifts' as const }] : []),
+			...(ctx.giftsText || data.theme.giftsAccount
+				? [{ key: 'gifts', kind: 'gifts' as const }]
+				: []),
 			{ key: 'rsvp', kind: 'rsvp' as const },
 			{ key: 'closing', kind: 'closing' as const }
 		];
@@ -38,13 +47,6 @@
 
 	let track: HTMLDivElement | undefined = $state();
 	let active = $state(0);
-	let interacted = $state(false);
-
-	// The swipe hint retires after the guest first navigates away — an actual
-	// scroll event is too eager (the open gesture itself fires one).
-	$effect(() => {
-		if (active > 0) interacted = true;
-	});
 
 	$effect(() => {
 		void scenes;
@@ -108,7 +110,7 @@
 </script>
 
 <div class="stage">
-	<Slideshow images={ctx.imageUrls} scrim={0.48} />
+	<Slideshow images={ctx.imageUrls} videoUrl={ctx.videoUrl} scrim={0.48} />
 
 	<div class="track" class:locked={!opened} bind:this={track} onwheel={onWheel}>
 		{#each scenes as scene, index (scene.key)}
@@ -137,23 +139,6 @@
 							</p>
 						</div>
 					</div>
-					{#if opened && !interacted}
-						<p class="hint" aria-hidden="true">
-							<svg
-								width="26"
-								height="14"
-								viewBox="0 0 26 14"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="1.4"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-							>
-								<path d="M1 7h22M17 1l6 6-6 6" />
-							</svg>
-							{t(ctx.lang, 'cover.swipe')}
-						</p>
-					{/if}
 				{:else if scene.kind === 'countdown'}
 					<Countdown targetIso={data.event.dateMain} lang={ctx.lang} layout="rows" />
 				{:else if scene.kind === 'locations'}
@@ -179,13 +164,18 @@
 							</div>
 						{/each}
 					</div>
-				{:else if scene.kind === 'schedule'}
-					<Schedule datesExtra={data.event.datesExtra} lang={ctx.lang} />
 				{:else if scene.kind === 'gifts'}
 					<div class="gifts">
 						<span class="g-icon"><Icon name="gift" /></span>
 						<h2 class="g-heading">{t(ctx.lang, 'gifts.title')}</h2>
-						<p class="g-text">{ctx.giftsText}</p>
+						{#if ctx.giftsText}<p class="g-text">{ctx.giftsText}</p>{/if}
+						{#if data.theme.giftsAccount}
+							<GiftAccount
+								label={data.theme.giftsAccountLabel}
+								account={data.theme.giftsAccount}
+								lang={ctx.lang}
+							/>
+						{/if}
 					</div>
 				{:else if scene.kind === 'rsvp'}
 					<div class="glass">
@@ -226,6 +216,21 @@
 	</div>
 
 	{#if opened && !preview}
+		<p class="hint" class:done={active === scenes.length - 1} aria-hidden="true">
+			<svg
+				width="26"
+				height="14"
+				viewBox="0 0 26 14"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="1.4"
+				stroke-linecap="round"
+				stroke-linejoin="round"
+			>
+				<path d="M1 7h22M17 1l6 6-6 6" />
+			</svg>
+			{t(ctx.lang, 'cover.swipe')}
+		</p>
 		<button
 			class="arrow prev"
 			type="button"
@@ -414,9 +419,12 @@
 		text-indent: 0;
 	}
 
+	/* the moving swipe caption — chrome, present at the bottom of every scene;
+	   it bows out on the finale, where there is nothing left to swipe to */
 	.hint {
 		position: absolute;
-		inset-block-end: 3.4rem;
+		z-index: 10;
+		inset-block-end: 2.7rem;
 		inset-inline: 0;
 		margin: 0;
 		display: flex;
@@ -424,14 +432,18 @@
 		justify-content: center;
 		gap: 0.7rem;
 		font-family: var(--ei-font-body);
-		font-size: 0.7rem;
+		font-size: 0.68rem;
 		letter-spacing: 0.24em;
 		text-transform: uppercase;
-		opacity: 0.85;
+		color: rgba(250, 246, 238, 0.85);
+		text-shadow: 0 1px 10px rgba(10, 8, 6, 0.5);
+		pointer-events: none;
+		animation: nudge 1.7s ease-in-out infinite;
+		transition: opacity 0.5s ease;
 	}
 
-	.hint svg {
-		animation: nudge 1.6s ease-in-out infinite;
+	.hint.done {
+		opacity: 0;
 	}
 
 	:global([dir='rtl']) .hint {
@@ -448,12 +460,26 @@
 			translate: 0 0;
 		}
 		50% {
-			translate: 7px 0;
+			translate: 8px 0;
+		}
+	}
+
+	:global([dir='rtl']) .hint {
+		animation-name: nudge-rtl;
+	}
+
+	@keyframes nudge-rtl {
+		0%,
+		100% {
+			translate: 0 0;
+		}
+		50% {
+			translate: -8px 0;
 		}
 	}
 
 	@media (prefers-reduced-motion: reduce) {
-		.hint svg {
+		.hint {
 			animation: none;
 		}
 	}

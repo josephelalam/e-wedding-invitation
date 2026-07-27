@@ -4,6 +4,7 @@
 	import Locations from '$lib/components/sections/Locations.svelte';
 	import Schedule from '$lib/components/sections/Schedule.svelte';
 	import Icon from '$lib/components/sections/Icon.svelte';
+	import GiftAccount from '$lib/components/sections/GiftAccount.svelte';
 	import RsvpBlock from '$lib/templates/shared/RsvpBlock.svelte';
 	import Petals from '$lib/templates/shared/Petals.svelte';
 	import { t } from '$lib/i18n';
@@ -76,11 +77,18 @@
 		</article>
 	{/if}
 
-	{#if ctx.giftsText}
+	{#if ctx.giftsText || data.theme.giftsAccount}
 		<article class="card" use:inview>
 			<span class="badge"><Icon name="gift" /></span>
 			<h2 class="card-heading">{t(ctx.lang, 'gifts.title')}</h2>
-			<p class="gifts">{ctx.giftsText}</p>
+			{#if ctx.giftsText}<p class="gifts">{ctx.giftsText}</p>{/if}
+			{#if data.theme.giftsAccount}
+				<GiftAccount
+					label={data.theme.giftsAccountLabel}
+					account={data.theme.giftsAccount}
+					lang={ctx.lang}
+				/>
+			{/if}
 		</article>
 	{/if}
 

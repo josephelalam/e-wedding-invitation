@@ -3,17 +3,29 @@
 	// slowly breathing (scale 1 → 1.08). The market signature — photography is
 	// the palette; everything else floats above on a scrim. Static first frame
 	// for prefers-reduced-motion; next image is preloaded before each swap so
-	// the fade never reveals an unloaded layer.
+	// the fade never reveals an unloaded layer. An owner-placed background
+	// video replaces the photo cycle (muted loop, first photo as poster);
+	// reduced-motion guests keep the still photo.
 	let {
 		images,
+		videoUrl = null,
 		interval = 6500,
 		scrim = 0.45
-	}: { images: string[]; interval?: number; scrim?: number } = $props();
+	}: { images: string[]; videoUrl?: string | null; interval?: number; scrim?: number } = $props();
 
 	let index = $state(0);
 	let previous = $state<number | null>(null);
 
+	// SSR paints the video shell with its photo poster (no-JS guests keep the
+	// still); reduced-motion clients drop to the photo wall on hydration.
+	const videoActive = $derived(
+		Boolean(videoUrl) &&
+			(typeof window === 'undefined' ||
+				!window.matchMedia('(prefers-reduced-motion: reduce)').matches)
+	);
+
 	$effect(() => {
+		if (videoActive) return;
 		if (images.length < 2) return;
 		if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 		let alive = true;
@@ -40,14 +52,18 @@
 </script>
 
 <div class="wall" aria-hidden="true">
-	{#each images as url, i (url)}
-		<div
-			class="layer"
-			class:current={i === index}
-			class:leaving={i === previous}
-			style="background-image:url('{url}')"
-		></div>
-	{/each}
+	{#if videoActive && videoUrl}
+		<video class="video" src={videoUrl} poster={images[0]} autoplay muted loop playsinline></video>
+	{:else}
+		{#each images as url, i (url)}
+			<div
+				class="layer"
+				class:current={i === index}
+				class:leaving={i === previous}
+				style="background-image:url('{url}')"
+			></div>
+		{/each}
+	{/if}
 	<div class="scrim" style="--scrim:{scrim}"></div>
 </div>
 
@@ -57,6 +73,15 @@
 		inset: 0;
 		overflow: hidden;
 		background: #14100c;
+	}
+
+	.video {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		z-index: 1;
 	}
 
 	.layer {

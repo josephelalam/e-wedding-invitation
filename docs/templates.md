@@ -7,11 +7,28 @@ caching — so a new module is purely presentation work.
 
 ## Shipped modules
 
-| id          | Name             | Signature                                                                            |
-| ----------- | ---------------- | ------------------------------------------------------------------------------------ |
-| `slides`    | Signature Deck   | Ken Burns photo wall + scrim behind scroll-snap slides, monochrome ivory, dot rail   |
-| `edges`     | Torn-Paper Story | formal long scroll: verse → families → photos torn like paper between cards, petals  |
-| `cinematic` | Horizon          | horizontal scroll-snap deck: cover gate → formal scene → countdown ledger → polaroid |
+| id          | Name             | Signature                                                                              |
+| ----------- | ---------------- | -------------------------------------------------------------------------------------- |
+| `slides`    | Signature Deck   | Ken Burns photo wall + scrim behind scroll-snap slides, monochrome ivory, dot rail     |
+| `edges`     | Torn-Paper Story | formal long scroll: verse → families → photos torn like paper between cards, petals    |
+| `cinematic` | Horizon          | horizontal scroll-snap deck: cover gate → formal → ledger → houses → venues → polaroid |
+
+Horizon extras: the getting-ready scene (both `house_*` locations) always
+renders before the ceremony scene regardless of stored sort; a moving swipe
+caption sits at the bottom of every scene (hidden on the finale); extra dates
+(`datesExtra`) are deliberately not shown in this layout.
+
+## Background video & gift account (2026-07-27)
+
+- `theme.videoKey` (R2 key under `theme/…`, deck layouts only): muted looping
+  background video behind the scenes — photos stay the poster and the
+  reduced-motion fallback. Guidance for owners lives in Studio → Theme → Layout.
+- `theme.giftsAccountLabel` + `theme.giftsAccount`: the cash-registry line
+  (Whish/OMT/IBAN) rendered by every template's gifts section as an engraved
+  label + number + one-tap copy button (`GiftAccount.svelte`).
+- The studio Theme tab is a tabbed editor (Layout/Look/Texts/Gifts & RSVP/
+  Photos) with a sticky save bar; switching layout previews instantly via
+  `/e/<slug>/preview?template=<id>` (owner-only override, never persisted).
 
 ## Look & feel (2026-07-27 uplift)
 

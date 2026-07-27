@@ -26,8 +26,9 @@ const localized = z.object({
 });
 
 // Owner-placed R2 keys only (hard constraint #1: no upload UI; and CSP
-// img-src 'self' forbids external URLs anyway).
-const imageKey = z.string().regex(/^theme\/[A-Za-z0-9_\-./]+$/, 'expected an R2 key under theme/');
+// img-src/media-src 'self' forbid external URLs anyway).
+const mediaKey = z.string().regex(/^theme\/[A-Za-z0-9_\-./]+$/, 'expected an R2 key under theme/');
+const imageKey = mediaKey;
 
 export const ThemeSchema = z.object({
 	preset: z.string().min(1),
@@ -43,7 +44,14 @@ export const ThemeSchema = z.object({
 	musicKey: z.string().nullable(),
 	monogram: z.string().nullable(),
 	images: z.array(imageKey).max(12),
+	// Optional background video for the deck layouts (muted loop behind the
+	// scenes; photos remain the poster/reduced-motion fallback).
+	videoKey: mediaKey.nullable(),
 	rsvpDeadline: z.string().nullable(),
+	// The cash-registry convention (Whish/OMT/IBAN): a label + a number shown
+	// on the gifts page with a copy button. Numbers are universal — not localized.
+	giftsAccountLabel: z.string().nullable(),
+	giftsAccount: z.string().nullable(),
 	texts: z.object({
 		welcome: localized.optional(),
 		closing: localized.optional(),
@@ -71,7 +79,10 @@ export const DEFAULT_THEME: Theme = {
 	musicKey: null,
 	monogram: null,
 	images: [],
+	videoKey: null,
 	rsvpDeadline: null,
+	giftsAccountLabel: null,
+	giftsAccount: null,
 	texts: {}
 };
 
