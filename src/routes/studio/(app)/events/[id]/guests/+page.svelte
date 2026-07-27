@@ -172,10 +172,11 @@
 		margin-inline-start: 0.4rem;
 		font-size: 0.68rem;
 		letter-spacing: 0.05em;
-		background: #efeae2;
+		background: var(--st-surface-2);
+		border: 1px solid var(--st-border);
 		color: var(--st-muted);
-		border-radius: 5px;
-		padding: 0.1rem 0.4rem;
+		border-radius: 999px;
+		padding: 0.1rem 0.5rem;
 	}
 
 	.revoked-tag {
@@ -200,7 +201,7 @@
 	}
 
 	.qr-cell {
-		background: #faf8f4;
+		background: var(--st-surface-2);
 	}
 
 	.qr {

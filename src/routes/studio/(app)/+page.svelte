@@ -5,11 +5,11 @@
 	let { data, form } = $props();
 	let creating = $state(false);
 
-	const statusColor: Record<string, string> = {
-		draft: '#8a857e',
-		live: '#3a7d44',
-		archived: '#b3423a'
-	};
+	const dateFormat = new Intl.DateTimeFormat('en-GB', {
+		day: 'numeric',
+		month: 'short',
+		year: 'numeric'
+	});
 </script>
 
 <svelte:head><title>Events — EInvite Studio</title></svelte:head>
@@ -20,7 +20,7 @@
 		<p class="st-sub">Every wedding (or baptism, or birthday) is a row + a theme.</p>
 
 		{#if data.events.length === 0}
-			<p>No events yet — create the first one on the right.</p>
+			<p class="st-empty">No events yet. Create the first one on the right.</p>
 		{:else}
 			<table class="st-table">
 				<thead>
@@ -35,17 +35,17 @@
 								</a>
 								<div class="slug">/{event.slug}</div>
 							</td>
-							<td>{new Date(event.dateMain).toLocaleDateString()}</td>
-							<td
-								><span class="dot" style="background:{statusColor[event.status]}"
-								></span>{event.status}</td
-							>
-							<td>
-								{event.stats.confirmedSeats} seats ·
-								{event.stats.confirmedCards}✓ {event.stats.declinedCards}✗
-								{event.stats.pendingCards}…
+							<td class="nowrap">{dateFormat.format(new Date(event.dateMain))}</td>
+							<td><span class="st-pill {event.status}">{event.status}</span></td>
+							<td class="nowrap">
+								<strong>{event.stats.confirmedSeats}</strong> seats
+								<span class="counts">
+									<span class="c-ok">{event.stats.confirmedCards}✓</span>
+									<span class="c-bad">{event.stats.declinedCards}✗</span>
+									<span class="c-wait">{event.stats.pendingCards}…</span>
+								</span>
 							</td>
-							<td>{event.paymentStatus}</td>
+							<td><span class="st-pill {event.paymentStatus}">{event.paymentStatus}</span></td>
 						</tr>
 					{/each}
 				</tbody>
@@ -128,17 +128,39 @@
 		text-decoration: none;
 	}
 
+	.ev-link:hover {
+		text-decoration: underline;
+		text-underline-offset: 3px;
+	}
+
 	.slug {
 		color: var(--st-muted);
 		font-size: 0.78rem;
 	}
 
-	.dot {
-		display: inline-block;
-		width: 0.55rem;
-		height: 0.55rem;
-		border-radius: 999px;
-		margin-inline-end: 0.4rem;
+	.nowrap {
+		white-space: nowrap;
+	}
+
+	.counts {
+		margin-inline-start: 0.45rem;
+		font-size: 0.82rem;
+	}
+
+	.counts span {
+		margin-inline-end: 0.35rem;
+	}
+
+	.c-ok {
+		color: var(--st-ok);
+	}
+
+	.c-bad {
+		color: var(--st-danger);
+	}
+
+	.c-wait {
+		color: var(--st-muted);
 	}
 
 	.langs {
