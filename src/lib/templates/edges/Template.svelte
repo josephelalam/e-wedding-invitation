@@ -2,7 +2,6 @@
 	import { inview } from '$lib/actions/inview';
 	import Countdown from '$lib/components/sections/Countdown.svelte';
 	import Locations from '$lib/components/sections/Locations.svelte';
-	import Schedule from '$lib/components/sections/Schedule.svelte';
 	import Icon from '$lib/components/sections/Icon.svelte';
 	import GiftAccount from '$lib/components/sections/GiftAccount.svelte';
 	import RsvpBlock from '$lib/templates/shared/RsvpBlock.svelte';
@@ -93,12 +92,6 @@
 		</article>
 	{/if}
 
-	{#if data.event.datesExtra.length > 0}
-		<article class="card" use:inview>
-			<Schedule datesExtra={data.event.datesExtra} lang={ctx.lang} />
-		</article>
-	{/if}
-
 	{#if ctx.giftsText || data.theme.giftsAccount}
 		<article class="card" use:inview>
 			<span class="badge"><Icon name="gift" /></span>
@@ -157,6 +150,20 @@
 		background-position: center;
 		background-color: color-mix(in srgb, var(--ei-accent) 30%, var(--ei-text));
 		text-align: center;
+	}
+
+	/* the page tears up into the hero photo as you begin to scroll —
+	   the same paper rip the bands use, from the very first movement */
+	.hero::after {
+		content: '';
+		position: absolute;
+		inset-inline: 0;
+		bottom: -1px;
+		height: 58px;
+		background: var(--ei-bg);
+		z-index: 2;
+		mask: url('/templates/edges/edge-bottom.svg') center / 100% 100% no-repeat;
+		-webkit-mask: url('/templates/edges/edge-bottom.svg') center / 100% 100% no-repeat;
 	}
 
 	.hero-veil {

@@ -13,8 +13,8 @@
 	import type { TemplateProps } from '$lib/templates/types';
 
 	// Template "slides" — the signature deck: a Ken Burns photo wall breathing
-	// behind every slide, monochrome ivory type over the scrim, hairline frames,
-	// a dot rail for orientation. Cover → gesture-unlocked music → scroll-snap
+	// behind every slide, monochrome ivory type over the scrim, nothing framing
+	// the photography. Cover → gesture-unlocked music → scroll-snap
 	// full-viewport slides (spec §3.1).
 	let { data, ctx, currentRsvp, errorKey, preview, opened, onopen }: TemplateProps = $props();
 
@@ -26,36 +26,12 @@
 			return true;
 		})
 	);
-
-	let scroller: HTMLDivElement | undefined = $state();
-	let active = $state(0);
-
-	// Dot rail follows the visible slide (cover = dot 0).
-	$effect(() => {
-		void slides;
-		if (!scroller) return;
-		const els = [...scroller.querySelectorAll('.slide')];
-		const observer = new IntersectionObserver(
-			(entries) => {
-				for (const entry of entries) {
-					if (entry.isIntersecting) active = els.indexOf(entry.target);
-				}
-			},
-			{ root: scroller, threshold: 0.55 }
-		);
-		for (const el of els) observer.observe(el);
-		return () => observer.disconnect();
-	});
-
-	function goTo(index: number) {
-		scroller?.querySelectorAll('.slide')[index]?.scrollIntoView({ behavior: 'smooth' });
-	}
 </script>
 
 <div class="deck">
 	<Slideshow images={ctx.imageUrls} videoUrl={ctx.videoUrl} scrim={0.5} />
 
-	<div class="scroller" class:locked={!opened} bind:this={scroller}>
+	<div class="scroller" class:locked={!opened}>
 		<Cover
 			title={ctx.title}
 			dateParts={ctx.dateParts}
@@ -102,20 +78,6 @@
 			</section>
 		{/each}
 	</div>
-
-	{#if opened && !preview}
-		<nav class="dots" aria-label="Sections">
-			{#each ['cover', ...slides] as section, index (section)}
-				<button
-					type="button"
-					class:on={active === index}
-					onclick={() => goTo(index)}
-					aria-label={section}
-					aria-current={active === index}
-				></button>
-			{/each}
-		</nav>
-	{/if}
 </div>
 
 <style>
@@ -142,7 +104,7 @@
 		overflow: hidden;
 	}
 
-	/* Every slide carries the hairline frame — this template's recurring signature. */
+	/* Clean full-bleed slides — the photography carries the page, nothing frames it. */
 	.scroller :global(.slide) {
 		position: relative;
 		min-height: 100dvh;
@@ -153,27 +115,12 @@
 		scroll-snap-stop: always;
 	}
 
-	.scroller :global(.slide)::before {
-		content: '';
-		position: absolute;
-		inset: 12px;
-		border: 1px solid rgba(250, 246, 238, 0.32);
-		pointer-events: none;
-	}
-
-	.scroller :global(.slide)::after {
-		content: '';
-		position: absolute;
-		inset: 17px;
-		border: 1px solid rgba(250, 246, 238, 0.14);
-		pointer-events: none;
-	}
-
 	/* the RSVP card floats on frosted glass so the form stays legible on any photo */
 	.glass {
 		width: min(28rem, 100%);
 		max-height: calc(100dvh - 6.5rem);
 		overflow-y: auto;
+		scrollbar-width: none;
 		background: rgba(18, 14, 10, 0.55);
 		backdrop-filter: blur(14px);
 		-webkit-backdrop-filter: blur(14px);
@@ -181,6 +128,10 @@
 		padding: 2.2rem 1.5rem;
 		display: grid;
 		place-items: center;
+	}
+
+	.glass::-webkit-scrollbar {
+		display: none;
 	}
 
 	.gifts {
@@ -224,42 +175,6 @@
 	:global([dir='rtl']) .gift-heading {
 		letter-spacing: 0;
 		text-indent: 0;
-	}
-
-	/* dot rail — orientation without chrome */
-	.dots {
-		position: absolute;
-		z-index: 10;
-		inset-inline-end: 0.55rem;
-		top: 50%;
-		transform: translateY(-50%);
-		display: flex;
-		flex-direction: column;
-		gap: 0.65rem;
-		padding: 0.4rem;
-	}
-
-	.dots button {
-		width: 0.42rem;
-		height: 0.42rem;
-		padding: 0;
-		border: none;
-		border-radius: 999px;
-		background: rgba(250, 246, 238, 0.38);
-		cursor: pointer;
-		transition:
-			transform 0.3s ease,
-			background-color 0.3s ease;
-	}
-
-	.dots button.on {
-		background: var(--ei-accent);
-		transform: scale(1.5);
-	}
-
-	.dots button:focus-visible {
-		outline: 2px solid rgba(250, 246, 238, 0.8);
-		outline-offset: 2px;
 	}
 
 	.more {

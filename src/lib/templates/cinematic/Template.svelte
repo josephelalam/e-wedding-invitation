@@ -636,6 +636,8 @@
 		max-height: calc(100dvh - 7.5rem);
 		overflow-y: auto;
 		overscroll-behavior: contain;
+		/* scrollable, but never shows a scrollbar over the stationery */
+		scrollbar-width: none;
 		background: rgba(18, 14, 10, 0.55);
 		backdrop-filter: blur(14px);
 		-webkit-backdrop-filter: blur(14px);
@@ -643,6 +645,10 @@
 		padding: 2.2rem 1.5rem;
 		display: grid;
 		place-items: center;
+	}
+
+	.glass::-webkit-scrollbar {
+		display: none;
 	}
 
 	/* ── finale: the tilted polaroid slides in ────────── */
