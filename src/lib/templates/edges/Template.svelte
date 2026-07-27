@@ -72,7 +72,7 @@
 		{:else}
 			<div class="band fallback"></div>
 		{/if}
-		<article class="card" use:inview>
+		<article class="card page" use:inview>
 			<Locations locations={houses} lang={ctx.lang} />
 		</article>
 	{/if}
@@ -83,7 +83,7 @@
 		{:else}
 			<div class="band fallback"></div>
 		{/if}
-		<article class="card" use:inview>
+		<article class="card page" use:inview>
 			<Locations
 				locations={dayStops}
 				lang={ctx.lang}
@@ -303,6 +303,12 @@
 		text-align: center;
 	}
 
+	/* the two location cards read as full pages — consistent scroll rhythm */
+	.card.page {
+		min-height: 100dvh;
+		justify-content: center;
+	}
+
 	.seal {
 		margin: 0 0 0.4rem;
 		width: 4rem;
@@ -334,6 +340,7 @@
 		color: var(--ei-muted);
 		line-height: 1.95;
 		max-width: 28rem;
+		white-space: pre-line;
 	}
 
 	.verse::before {

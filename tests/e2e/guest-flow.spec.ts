@@ -49,13 +49,13 @@ test.describe('guest flow', () => {
 		await page.locator('input[name="seats"]').fill('2');
 		await expect(page.locator('input[name="seats"]')).toHaveValue('2');
 		await page.getByRole('button', { name: 'Send answer' }).click();
-		await expect(page.getByText("Wonderful — we can't wait to see you!")).toBeVisible();
+		await expect(page.getByText("Wonderful! We can't wait to see you.")).toBeVisible();
 
 		// Answer round-trips through the API (cached HTML never bakes state)
 		await page.reload();
 		await page.getByRole('button', { name: 'Open Invitation' }).click();
 		await page.locator('[data-section="rsvp"]').scrollIntoViewIfNeeded();
-		await expect(page.getByText("Wonderful — we can't wait to see you!")).toBeVisible();
+		await expect(page.getByText("Wonderful! We can't wait to see you.")).toBeVisible();
 		await expect(page.locator('[data-section="rsvp"]')).toContainText('2');
 	});
 

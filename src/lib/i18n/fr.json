@@ -41,17 +41,17 @@
 		"note_placeholder": "Un mot pour les mariés…",
 		"submit": "Envoyer la réponse",
 		"submitting": "Envoi en cours…",
-		"success_yes": "Quelle joie — à très bientôt !",
+		"success_yes": "Quelle joie ! À très bientôt.",
 		"success_no": "Merci de nous avoir prévenus. Vous nous manquerez !",
 		"answered_on": "Répondu le {date}",
 		"change_hint": "Vous pouvez modifier votre réponse à tout moment depuis ce lien.",
 		"privacy": "Ces informations servent uniquement à l'organisation de l'événement et seront supprimées ensuite.",
-		"closed": "La période de confirmation est terminée — contactez vos hôtes pour tout changement."
+		"closed": "La période de confirmation est terminée. Contactez vos hôtes pour tout changement."
 	},
 	"errors": {
 		"invalid": "Cette invitation n'est pas valide.",
 		"seats": "Ce nombre dépasse les places réservées à votre carte.",
-		"rate_limited": "Trop de tentatives — réessayez dans un instant.",
+		"rate_limited": "Trop de tentatives. Réessayez dans un instant.",
 		"turnstile": "Vérification impossible. Veuillez réessayer.",
 		"generic": "Une erreur est survenue. Veuillez réessayer."
 	},
@@ -64,7 +64,7 @@
 		"body": "Ce lien est incorrect ou n'est plus actif. Contactez vos hôtes."
 	},
 	"closing": {
-		"default": "Avec tout notre amour — à bientôt"
+		"default": "Avec tout notre amour, à bientôt"
 	},
 	"dash": {
 		"title": "Tableau des réponses",

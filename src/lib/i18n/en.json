@@ -41,17 +41,17 @@
 		"note_placeholder": "A word for the couple…",
 		"submit": "Send answer",
 		"submitting": "Sending…",
-		"success_yes": "Wonderful — we can't wait to see you!",
+		"success_yes": "Wonderful! We can't wait to see you.",
 		"success_no": "Thank you for letting us know. You'll be missed!",
 		"answered_on": "Answered on {date}",
 		"change_hint": "You can change your answer anytime from this link.",
 		"privacy": "These details are used only to organise the event and are deleted afterwards.",
-		"closed": "The RSVP period has closed — contact your hosts for changes."
+		"closed": "The RSVP period has closed. Please contact your hosts for changes."
 	},
 	"errors": {
 		"invalid": "This invitation isn't valid.",
 		"seats": "That number exceeds the seats reserved for your card.",
-		"rate_limited": "Too many attempts — please try again shortly.",
+		"rate_limited": "Too many attempts. Please try again shortly.",
 		"turnstile": "We couldn't verify you're human. Please try again.",
 		"generic": "Something went wrong. Please try again."
 	},
@@ -64,7 +64,7 @@
 		"body": "This link is incorrect or no longer active. Please contact your hosts."
 	},
 	"closing": {
-		"default": "With all our love — see you there"
+		"default": "With all our love, see you there"
 	},
 	"dash": {
 		"title": "RSVP dashboard",

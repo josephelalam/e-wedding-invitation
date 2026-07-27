@@ -72,8 +72,8 @@
 				{:else if section === 'closing'}
 					<Closing text={ctx.closingText} monogram={ctx.monogram} />
 				{/if}
-				{#if index === 0 && opened}
-					<div class="more" aria-hidden="true">⌄</div>
+				{#if opened && index < slides.length - 1}
+					<div class="cue" aria-hidden="true"><span></span></div>
 				{/if}
 			</section>
 		{/each}
@@ -177,31 +177,44 @@
 		text-indent: 0;
 	}
 
-	.more {
+	/* the lightest possible scroll guide: a hairline that drips downward */
+	.cue {
 		position: absolute;
-		inset-block-end: 1.9rem;
+		inset-block-end: 1.3rem;
 		inset-inline: 0;
-		text-align: center;
-		color: rgba(250, 246, 238, 0.85);
-		font-size: 1.3rem;
-		animation: drift 2.4s ease-in-out infinite;
+		display: flex;
+		justify-content: center;
+		pointer-events: none;
+	}
+
+	.cue span {
+		width: 1px;
+		height: 34px;
+		background: linear-gradient(to bottom, transparent, rgba(250, 246, 238, 0.85));
+		transform-origin: top;
+		animation: drip 2.4s ease-in-out infinite;
+	}
+
+	@keyframes drip {
+		0% {
+			transform: scaleY(0);
+			opacity: 0;
+		}
+		45% {
+			transform: scaleY(1);
+			opacity: 0.9;
+		}
+		75%,
+		100% {
+			transform: scaleY(1);
+			opacity: 0;
+		}
 	}
 
 	@media (prefers-reduced-motion: reduce) {
-		.more {
+		.cue span {
 			animation: none;
-		}
-	}
-
-	@keyframes drift {
-		0%,
-		100% {
-			transform: translateY(0);
-			opacity: 0.55;
-		}
-		50% {
-			transform: translateY(6px);
-			opacity: 1;
+			opacity: 0.5;
 		}
 	}
 </style>

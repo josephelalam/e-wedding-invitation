@@ -27,7 +27,7 @@ test.describe('edges template (torn-paper story)', () => {
 		await page.getByText('Yes, with joy').click();
 		await page.locator('input[name="seats"]').fill('2');
 		await page.getByRole('button', { name: 'Send answer' }).click();
-		await expect(page.getByText("Wonderful — we can't wait to see you!")).toBeVisible();
+		await expect(page.getByText("Wonderful! We can't wait to see you.")).toBeVisible();
 
 		const state = await page.request.get(`/api/rsvp/${E2E.tokens.edges}`);
 		expect(await state.json()).toMatchObject({ rsvp: { attending: true, confirmedSeats: 2 } });

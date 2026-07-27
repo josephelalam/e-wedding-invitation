@@ -343,6 +343,7 @@
 		font-size: 1.15rem;
 		line-height: 1.9;
 		opacity: 0.92;
+		white-space: pre-line;
 	}
 
 	.parents {
