@@ -6,7 +6,6 @@
 	import Icon from '$lib/components/sections/Icon.svelte';
 	import GiftAccount from '$lib/components/sections/GiftAccount.svelte';
 	import RsvpBlock from '$lib/templates/shared/RsvpBlock.svelte';
-	import Petals from '$lib/templates/shared/Petals.svelte';
 	import { t } from '$lib/i18n';
 	import type { TemplateProps } from '$lib/templates/types';
 
@@ -19,9 +18,17 @@
 	const bands = $derived(ctx.imageUrls);
 	const band = (index: number): string | null => bands[index % Math.max(bands.length, 1)] ?? null;
 	const endPhoto = $derived(bands.length > 0 ? bands[bands.length - 1] : null);
-</script>
 
-<Petals color={data.theme.colors.accent} />
+	// A long list of stops crops badly into one card: the getting-ready houses
+	// get their own card, a photo tears the page after the bride's house, then
+	// the ceremony/celebration stops follow.
+	const houses = $derived(
+		data.locations.filter((l) => l.kind === 'house_groom' || l.kind === 'house_bride')
+	);
+	const dayStops = $derived(
+		data.locations.filter((l) => l.kind !== 'house_groom' && l.kind !== 'house_bride')
+	);
+</script>
 
 <div class="story" class:locked={!opened}>
 	<header class="hero" style={band(0) ? `background-image:url('${band(0)}')` : ''}>
@@ -60,14 +67,29 @@
 		<Countdown targetIso={data.event.dateMain} lang={ctx.lang} />
 	</article>
 
-	{#if data.locations.length > 0}
+	{#if houses.length > 0}
 		{#if band(2)}
 			<div class="band" style="background-image:url('{band(2)}')"></div>
 		{:else}
 			<div class="band fallback"></div>
 		{/if}
 		<article class="card" use:inview>
-			<Locations locations={data.locations} lang={ctx.lang} />
+			<Locations locations={houses} lang={ctx.lang} />
+		</article>
+	{/if}
+
+	{#if dayStops.length > 0}
+		{#if band(houses.length > 0 ? 3 : 2)}
+			<div class="band" style="background-image:url('{band(houses.length > 0 ? 3 : 2)}')"></div>
+		{:else}
+			<div class="band fallback"></div>
+		{/if}
+		<article class="card" use:inview>
+			<Locations
+				locations={dayStops}
+				lang={ctx.lang}
+				heading={houses.length > 0 ? null : undefined}
+			/>
 		</article>
 	{/if}
 
@@ -92,8 +114,8 @@
 		</article>
 	{/if}
 
-	{#if band(3)}
-		<div class="band" style="background-image:url('{band(3)}')"></div>
+	{#if band(4)}
+		<div class="band" style="background-image:url('{band(4)}')"></div>
 	{:else}
 		<div class="band fallback"></div>
 	{/if}

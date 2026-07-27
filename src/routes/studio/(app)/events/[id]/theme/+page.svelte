@@ -221,6 +221,17 @@
 					maxlength="6"
 				/></label
 			>
+			<label class="st-field"
+				>Ambient effect (floating over every layout)
+				<select name="effect" value={theme.effect}>
+					<option value="none">None</option>
+					<option value="petals">Falling petals</option>
+					<option value="hearts">Falling hearts</option>
+					<option value="sparkles">Rising gold dust</option>
+					<option value="leaves">Falling leaves</option>
+					<option value="snow">Snowfall</option>
+				</select>
+			</label>
 			<details class="fonts">
 				<summary>Advanced: font stacks</summary>
 				<label class="st-field"

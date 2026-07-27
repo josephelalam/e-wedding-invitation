@@ -97,6 +97,12 @@ describe('template module system', () => {
 		expect(() => parseTheme({ videoKey: 'https://evil.example/x.mp4' })).toThrow();
 	});
 
+	it('carries the ambient effect, defaulting to none, rejecting unknown kinds', () => {
+		expect(parseTheme({}).effect).toBe('none');
+		expect(parseTheme({ effect: 'sparkles' }).effect).toBe('sparkles');
+		expect(() => parseTheme({ effect: 'confetti-cannon' })).toThrow();
+	});
+
 	it('carries the extended template texts and rsvp deadline', () => {
 		const theme = parseTheme({
 			rsvpDeadline: '2026-09-01',

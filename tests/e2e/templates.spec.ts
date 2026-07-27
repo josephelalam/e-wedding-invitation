@@ -12,8 +12,9 @@ test.describe('edges template (torn-paper story)', () => {
 		await expect(page.getByText('For Fadi & Nadine')).toBeVisible();
 		await page.getByRole('button', { name: 'Open Invitation' }).click();
 
-		// signature elements: torn photo bands + story texts
+		// signature elements: torn photo bands + story texts + ambient effect
 		await expect(page.locator('.band').first()).toBeVisible();
+		await expect(page.locator('canvas.fx')).toBeAttached();
 		await expect(page.getByText('let no one separate', { exact: false })).toBeVisible();
 		await expect(page.getByText('Mr. & Mrs. Karam', { exact: false })).toBeVisible();
 		await expect(page.getByText('Wedding list: 03 123 456', { exact: false })).toBeVisible();

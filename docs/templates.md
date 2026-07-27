@@ -60,9 +60,11 @@ with the pre-uploaded demo set: `theme/demo/1.svg` … `theme/demo/4.svg`.
    date, monogram, `rsvpIsClosed`), `opened`/`onopen` (the audio-unlock
    gesture — call it from your start button), and RSVP state.
 2. Reuse the shared pieces where they fit: `templates/shared/RsvpBlock.svelte`
-   (deadline-aware RSVP), `Petals.svelte`, and the section components
-   (`Countdown`, `Locations`, `Schedule`). Wrap content in `use:inview` for
-   the shared entrance reveal.
+   (deadline-aware RSVP), `Slideshow.svelte`, `GiftAccount.svelte`, and the
+   section components (`Countdown`, `Locations`, `Schedule`). Wrap content in
+   `use:inview` for the shared entrance reveal. Ambient particles come from
+   the dispatcher (`theme.effect`: petals/hearts/sparkles/leaves/snow via
+   `Effects.svelte`) — templates don't render them.
 3. Add the id to `TEMPLATE_IDS` (`src/lib/themes/schema.ts`) and register it
    in `src/lib/templates/registry.ts` (name + tagline shown in the studio
    picker).

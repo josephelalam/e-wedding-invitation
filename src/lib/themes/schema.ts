@@ -52,6 +52,8 @@ export const ThemeSchema = z.object({
 	// on the gifts page with a copy button. Numbers are universal — not localized.
 	giftsAccountLabel: z.string().nullable(),
 	giftsAccount: z.string().nullable(),
+	// Ambient particle layer, any layout: petals fall, sparkles rise, etc.
+	effect: z.enum(['none', 'petals', 'hearts', 'sparkles', 'leaves', 'snow']),
 	texts: z.object({
 		welcome: localized.optional(),
 		closing: localized.optional(),
@@ -83,6 +85,7 @@ export const DEFAULT_THEME: Theme = {
 	rsvpDeadline: null,
 	giftsAccountLabel: null,
 	giftsAccount: null,
+	effect: 'none',
 	texts: {}
 };
 

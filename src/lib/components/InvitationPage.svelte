@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import AudioPlayer from '$lib/components/AudioPlayer.svelte';
+	import Effects from '$lib/templates/shared/Effects.svelte';
 	import { t, dirFor } from '$lib/i18n';
 	import { TEMPLATES } from '$lib/templates/registry';
 	import { resolveText, mediaUrl, rsvpClosed } from '$lib/templates/context';
@@ -138,6 +139,10 @@
 		muteLabel={t(lang, 'audio.mute')}
 		unmuteLabel={t(lang, 'audio.unmute')}
 	/>
+
+	{#if data.theme.effect !== 'none'}
+		<Effects kind={data.theme.effect} color={data.theme.colors.accent} />
+	{/if}
 
 	<Template {data} {ctx} {currentRsvp} {errorKey} {preview} {opened} onopen={open} />
 </main>

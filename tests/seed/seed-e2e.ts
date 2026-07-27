@@ -41,6 +41,7 @@ const edgesTheme = {
 	preset: 'classic',
 	template: 'edges',
 	monogram: 'R·T',
+	effect: 'petals',
 	images: ['theme/e2e/1.svg', 'theme/e2e/2.svg', 'theme/e2e/3.svg'],
 	texts: {
 		intro: { en: 'Therefore what God has joined together, let no one separate.' },

@@ -13,7 +13,11 @@
 		startsAt: string | null;
 	};
 
-	let { locations, lang }: { locations: LocationRow[]; lang: Lang } = $props();
+	let {
+		locations,
+		lang,
+		heading = undefined
+	}: { locations: LocationRow[]; lang: Lang; heading?: string | null } = $props();
 
 	function label(location: LocationRow): string {
 		const byLang: Record<Lang, string | null> = {
@@ -43,7 +47,9 @@
 </script>
 
 <div class="content" use:inview>
-	<h2 class="heading">{t(lang, 'locations.title')}</h2>
+	{#if heading !== null}
+		<h2 class="heading">{heading ?? t(lang, 'locations.title')}</h2>
+	{/if}
 	<!-- The day as a journey: an ordered list of 0..n typed stops (spec §2.3),
 	     each a plain Google Maps link — no embeds, no API key (spec §8). -->
 	<ol class="stops">
