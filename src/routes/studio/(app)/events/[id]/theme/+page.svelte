@@ -412,7 +412,6 @@
 						</p>
 						{#if theme.videoKey}
 							<div class="video-now">
-								<!-- svelte-ignore a11y_media_has_caption -- decorative background loop -->
 								<video src="/api/media/{theme.videoKey}" muted loop autoplay playsinline></video>
 								<form method="POST" action="?/removeVideo" use:enhance={refreshAfter}>
 									<button class="st-btn danger">Remove video</button>
