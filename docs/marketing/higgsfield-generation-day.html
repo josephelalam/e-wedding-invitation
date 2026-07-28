@@ -1,0 +1,257 @@
+<title>Ma3zoum — Higgsfield Generation Day</title>
+<style>
+  :root{
+    --paper:#F6F1E7; --card:#FFFDF8; --ink:#2B251C; --muted:#6E6455;
+    --gold:#96772A; --gold-soft:#C8B683; --olive:#5C6B4C; --line:#E2D9C6;
+    --warn-bg:#F3E4D2; --warn-ink:#7A4A1A;
+  }
+  @media (prefers-color-scheme: dark){:root{
+    --paper:#17140F; --card:#201C15; --ink:#EDE6D8; --muted:#A69A85;
+    --gold:#D4B36A; --gold-soft:#6E5A2E; --olive:#9BAD86; --line:#37301F;
+    --warn-bg:#332413; --warn-ink:#E4B980;
+  }}
+  :root[data-theme="dark"]{
+    --paper:#17140F; --card:#201C15; --ink:#EDE6D8; --muted:#A69A85;
+    --gold:#D4B36A; --gold-soft:#6E5A2E; --olive:#9BAD86; --line:#37301F;
+    --warn-bg:#332413; --warn-ink:#E4B980;
+  }
+  :root[data-theme="light"]{
+    --paper:#F6F1E7; --card:#FFFDF8; --ink:#2B251C; --muted:#6E6455;
+    --gold:#96772A; --gold-soft:#C8B683; --olive:#5C6B4C; --line:#E2D9C6;
+    --warn-bg:#F3E4D2; --warn-ink:#7A4A1A;
+  }
+  body{background:var(--paper);color:var(--ink);font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;margin:0;padding:0 16px 96px}
+  main{max-width:760px;margin:0 auto}
+  h1,h2,h3{font-family:Georgia,"Times New Roman",serif;text-wrap:balance;line-height:1.2}
+  h1{font-size:2rem;margin:40px 0 4px}
+  h2{font-size:1.5rem;margin:56px 0 8px;padding-top:20px;border-top:1px solid var(--line)}
+  h3{font-size:1.12rem;margin:32px 0 6px;color:var(--gold)}
+  p{max-width:65ch}
+  .sub{color:var(--muted);margin:0 0 8px}
+  .kicker{letter-spacing:.14em;text-transform:uppercase;font-size:.72rem;color:var(--gold);font-weight:600}
+  .clock{display:inline-block;background:var(--warn-bg);color:var(--warn-ink);border-radius:6px;padding:6px 12px;font-size:.9rem;margin:10px 0}
+  nav{display:flex;flex-wrap:wrap;gap:8px;margin:20px 0 8px}
+  nav a{color:var(--olive);text-decoration:none;font-size:.85rem;border:1px solid var(--line);border-radius:999px;padding:4px 12px;background:var(--card)}
+  .prompt{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin:10px 0;position:relative}
+  .prompt .tag{display:inline-block;font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+  .prompt p{margin:2px 0;padding-right:64px}
+  .prompt button{position:absolute;top:10px;right:10px;border:1px solid var(--gold-soft);background:transparent;color:var(--gold);border-radius:6px;padding:4px 10px;font-size:.78rem;cursor:pointer}
+  .prompt button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+  .sr{border-left:4px solid var(--olive);background:var(--card);border-radius:0 10px 10px 0;padding:10px 14px;margin:10px 0;font-size:.95rem}
+  .sr b{color:var(--olive)}
+  .warn{background:var(--warn-bg);color:var(--warn-ink);border-radius:10px;padding:12px 16px;margin:14px 0}
+  .meta{font-size:.85rem;color:var(--muted)}
+  ul{padding-left:20px}li{margin:4px 0}
+  .hook{font-size:1.02rem}
+  .grid2{display:grid;grid-template-columns:1fr;gap:0 24px}
+  @media(min-width:640px){.grid2{grid-template-columns:1fr 1fr}}
+  table{border-collapse:collapse;font-size:.9rem;width:100%}
+  td,th{border:1px solid var(--line);padding:6px 10px;text-align:left;vertical-align:top}
+  th{background:var(--card)}
+  .tablewrap{overflow-x:auto}
+  code{background:var(--card);border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-size:.88em}
+</style>
+<main>
+  <p class="kicker">Ma3zoum · معزوم · launch campaign</p>
+  <h1>Higgsfield Generation Day</h1>
+  <p class="sub">Every prompt on this page is paste-ready — hit Copy, paste into Higgsfield, render. Work top to bottom: the order is priority order, not story order.</p>
+  <p class="clock">⏱ Unlimited window: <b>today only</b>. Generate first, edit tomorrow. Download every take as it finishes.</p>
+
+  <nav>
+    <a href="#rules">Rules</a><a href="#soulid">1 · Soul ID</a><a href="#reels">2 · Reels</a><a href="#adbank">3 · Ad bank</a><a href="#statics">4 · Launch kit</a><a href="#broll">5 · B-roll</a><a href="#wrap">End of day</a>
+  </nav>
+
+  <h2 id="rules">0 · Rules of the day</h2>
+  <ul>
+    <li><b>Priority order if time runs out:</b> Soul ID → Reels 2, 3, 6 → Reels 1, 4, 5 → Ad bank → Launch kit → B-roll.</li>
+    <li><b>Workflow per shot:</b> generate the <i>keyframe</i> still first (with your Soul ID characters selected), then animate it image-to-video with the <i>motion</i> prompt. Render <b>5–10 takes per shot</b>, keep the best 2 — that's what unlimited buys you.</li>
+    <li><b>Aspect: 9:16 vertical</b> for all video and story assets; 1:1 for grid statics. Set it in the UI every time.</li>
+    <li><b>Model picks:</b> faces &amp; emotion close-ups → Kling; wide cinematic movement → Veo / Sora; talking lines → Higgsfield Speak (lipsync). When a shot looks off after 3 takes, switch model before rewording.</li>
+    <li><b>Download discipline:</b> name files <code>r2-sA-t03.mp4</code> (reel–shot–take). Rejected takes go in a <code>broll-extra</code> folder — never delete.</li>
+    <li><b>No AI Arabic text, ever.</b> Video models butcher Arabic script. All عربي text (hooks, names, logo) gets added tomorrow in editing with your own fonts. Prompts below keep phone screens as unreadable glow for the same reason.</li>
+    <li><b>Green boxes = screen-recording slots</b> — real captures of the live product, recorded separately (tomorrow is fine). Don't generate these.</li>
+  </ul>
+
+  <h2 id="soulid">1 · Soul ID — train the cast first (~45 min)</h2>
+  <p>Generate 5 stills per character with Soul, keeping the description identical every time, then train a Soul ID per character. Everything else depends on this — start it immediately. Vary only the framing line at the end.</p>
+
+  <h3>Nour — the bride</h3>
+  <div class="prompt"><span class="tag">base description — reuse verbatim in all 5</span><p>A 28-year-old Lebanese woman with warm olive skin, long espresso-brown voluminous wavy hair, warm brown almond-shaped eyes, softly defined brows, natural elegant makeup, a delicate gold necklace. Photorealistic portrait, warm ivory studio backdrop, soft directional light.</p></div>
+  <div class="prompt"><span class="tag">framing lines — append one per still</span><p>1) Front-facing portrait, neutral gentle expression, head and shoulders. 2) Three-quarter profile, soft natural smile. 3) Candid laugh, golden-hour window light. 4) Full body, casual chic cream linen outfit, standing relaxed. 5) Close beauty shot, eyes to camera, serene.</p></div>
+
+  <h3>Karim — the groom</h3>
+  <div class="prompt"><span class="tag">base description — reuse verbatim in all 5</span><p>A 31-year-old Lebanese man with short dark hair, a neatly trimmed dark beard, warm hazel-brown eyes, athletic build, confident warm smile. Photorealistic portrait, warm ivory studio backdrop, soft directional light.</p></div>
+  <p class="meta">Use the same 5 framing lines as Nour.</p>
+
+  <h3>Mama — Nour's mother (reel 3 star)</h3>
+  <div class="prompt"><span class="tag">base description — 4 stills, same framings 1–4</span><p>An elegant Lebanese mother in her late 50s, shoulder-length styled chestnut-brown hair, warm brown eyes, gold hoop earrings and layered fine gold necklaces, a refined cream blazer, dignified warm presence. Photorealistic portrait, warm ivory studio backdrop, soft directional light.</p></div>
+
+  <h3>Rami — the cousin in Montreal (one reel; Soul ID optional)</h3>
+  <div class="prompt"><span class="tag">base description — 3 stills</span><p>A 26-year-old Lebanese man with short curly dark hair, round tortoiseshell glasses, light stubble, a cozy grey hoodie, friendly tired smile. Photorealistic portrait, soft cool indoor light.</p></div>
+
+  <h2 id="reels">2 · The Nour &amp; Karim story reels</h2>
+  <p>Generate in this order: <b>Reel 2 → 3 → 6</b> (the conversion core), then <b>1 → 4 → 5</b>. Select your Soul ID characters for every keyframe that names them.</p>
+
+  <h3>Reel 2 — "The Send" · product hero · ~25s</h3>
+  <p class="hook">Hook (added in edit): <b>بعتنا التفاصيل عالواتساب… وبعد ٤٨ ساعة 👀</b> · <i>We sent our details on WhatsApp. 48h later:</i></p>
+  <div class="prompt"><span class="tag">shot A · keyframe · Nour + Karim</span><p>Nour and Karim sit close together on a cream linen sofa in a warm Beirut apartment at dusk, planning their wedding: an open notebook, scattered paper quotes from printers, two phones and espresso cups on the coffee table. Nour leans toward Karim's shoulder looking at his phone. Cozy lamplight, city bokeh through the window. Cinematic, warm golden Mediterranean light, ivory and gold color palette, shallow depth of field, soft 35mm film grain, photorealistic.</p></div>
+  <div class="prompt"><span class="tag">shot A · motion</span><p>Slow dolly-in toward the couple; Nour points at the phone, Karim nods and types; subtle warm handheld feel.</p></div>
+  <div class="prompt"><span class="tag">shot B · keyframe</span><p>Extreme close-up over a man's shoulder of a smartphone held in his hands, thumbs typing a message, the screen an unreadable warm glow, lamplight reflections, blurred cozy living room behind. Cinematic, warm golden Mediterranean light, ivory and gold color palette, shallow depth of field, soft 35mm film grain, photorealistic.</p></div>
+  <div class="prompt"><span class="tag">shot B · motion</span><p>Macro rack focus from the thumbs to the screen glow; he taps send and lowers the phone out of frame.</p></div>
+  <div class="prompt"><span class="tag">shot C · keyframe</span><p>A Beirut apartment window seen from inside, silhouetted plants on the sill, the sun setting over rooftops and the Mediterranean beyond. Cinematic, warm golden Mediterranean light, ivory and gold color palette, soft 35mm film grain, photorealistic.</p></div>
+  <div class="prompt"><span class="tag">shot C · motion</span><p>Time-lapse: clouds streak past, sunset light sweeps across the wall, city lights blink on through night, then dawn breaks.</p></div>
+  <div class="sr"><b>Screen-recording slot (8–10s):</b> WhatsApp chat receives the link → tap → envelope cover with the couple's names → music starts → envelope opens. Record from the live nour-karim demo event, royalty-free track.</div>
+  <div class="prompt"><span class="tag">shot D · keyframe · Nour</span><p>Nour holds her phone vertically in both hands, her face lit by a warm golden screen glow, eyes widening with delight, one hand rising to her chest, evening apartment bokeh behind her. Cinematic, warm golden Mediterranean light, ivory and gold color palette, shallow depth of field, soft 35mm film grain, photorealistic.</p></div>
+  <div class="prompt"><span class="tag">shot D · motion</span><p>Slow push-in on her face as delight blooms into a wide smile; she looks up toward someone off-frame.</p></div>
+  <div class="prompt"><span class="tag">shot E · keyframe · Nour + Karim</span><p>Nour and Karim embrace laughing on the sofa, the phone glowing warmly between them, celebratory intimate mood, lamp flare. Cinematic, warm golden Mediterranean light, ivory and gold color palette, shallow depth of field, soft 35mm film grain, photorealistic.</p></div>
+  <div class="prompt"><span class="tag">shot E · motion</span><p>Gentle slow orbit around the embracing couple, soft lens flare from the lamp, slight slow motion.</p></div>
+
+  <h3>Reel 3 — "Mama's Reaction" · emotional peak · ~20s</h3>
+  <p class="hook">Hook: <b>أول شخص عزمناه: الماما 🥹</b> · <i>The first invitation went to mama.</i></p>
+  <div class="prompt"><span class="tag">shot A · keyframe · Mama</span><p>An elegant Lebanese living room in soft afternoon light: ornate gilded mirror, fresh white flowers, brocade armchair. Mama sits holding a small Lebanese coffee cup; on the side table her phone screen lights up. Cinematic, warm golden Mediterranean light, ivory and gold color palette, shallow depth of field, soft 35mm film grain, photorealistic.</p></div>
+  <div class="prompt"><span class="tag">shot A · motion</span><p>Static wide settles for a beat; she notices the phone, sets down the coffee cup, and reaches for it with curiosity.</p></div>
+  <div class="prompt"><span class="tag">shot B · keyframe</span><p>Over-the-shoulder macro close-up of an elegant older woman's hands holding a phone, gold rings and a fine bracelet, the screen an unreadable soft golden glow, lace-curtain light. Cinematic, warm golden Mediterranean light, ivory and gold color palette, shallow depth of field, soft 35mm film grain, photorealistic.</p></div>
+  <div class="prompt"><span class="tag">shot B · motion</span><p>Her thumb taps the screen once; the golden glow brightens and reflects on her rings.</p></div>
+  <div class="sr"><b>Screen-recording slot (~8s):</b> her personal link opens — cover shows the formal honorific guest line and the couple's names → envelope opens with music → first slides.</div>
+  <div class="prompt"><span class="tag">shot C · keyframe · Mama</span><p>Close-up of Mama's face lit by warm phone glow: eyes glistening with tears, one hand rising to cover her mouth, a laugh breaking through, overwhelming joy. Cinematic, warm golden Mediterranean light, ivory and gold color palette, shallow depth of field, soft 35mm film grain, photorealistic.</p></div>
+  <div class="prompt"><span class="tag">shot C · motion</span><p>Slow dolly-in; she blinks away tears, smiles wide, presses her hand to her chest.</p></div>
+  <div class="prompt"><span class="tag">shot C · lipsync line (Higgsfield Speak, optional take)</span><p>يـي! شو حلوة… الله يهنّيكن يا حبايبي</p></div>
+  <div class="prompt"><span class="tag">shot D · keyframe · Mama</span><p>Mama on a joyful video call, wiping happy tears with a tissue, laughing and waving at the phone propped on the table, white flowers behind her. Cinematic, warm golden Mediterranean light, ivory and gold color palette, shallow depth of field, soft 35mm film grain, photorealistic.</p></div>
+  <div class="prompt"><span class="tag">shot D · motion</span><p>Warm handheld feel; she laughs, waves, and beckons "come here" toward the camera.</p></div>
+
+  <h3>Reel 6 — "وعقبالكن" · CTA loop · ~12s</h3>
+  <p class="hook">End card (edit): <b>معزوم — دورك؟ الرابط بالبايو</b> + WhatsApp icon.</p>
+  <div class="prompt"><span class="tag">shot A · keyframe · Nour + Karim</span><p>Nour in an elegant wedding dress and Karim in a black tuxedo on a crowded wedding dance floor under string lights, gold confetti falling, guests celebrating with sparklers behind them; the couple faces the camera raising champagne glasses. Cinematic, warm golden Mediterranean light, ivory and gold color palette, shallow depth of field, soft 35mm film grain, photorealistic.</p></div>
+  <div class="prompt"><span class="tag">shot A · motion</span><p>Slow-motion confetti; they break from dancing, turn to the camera, raise their glasses and wink.</p></div>
+  <div class="prompt"><span class="tag">shot B · keyframe · Nour + Karim</span><p>Medium close-up of Nour and Karim at their wedding, both looking straight into the camera, warm smiles, string-light bokeh and drifting confetti behind. Cinematic, warm golden Mediterranean light, ivory and gold color palette, shallow depth of field, soft 35mm film grain, photorealistic.</p></div>
+  <div class="prompt"><span class="tag">shot B · lipsync line (Speak — Karim, or both together)</span><p>وعقبالكن!</p></div>
+
+  <h3>Reel 1 — "The Yes" · teaser · ~15s</h3>
+  <p class="hook">Hook: <b>لبنان، تعرّفوا على نور وكريم 💍</b> · <i>Their invitation is coming…</i></p>
+  <div class="prompt"><span class="tag">shot A · keyframe</span><p>Aerial view over a Lebanese mountain village at golden hour, stone houses with red roofs, the Mediterranean glittering far below, a rooftop terrace strung with fairy lights at the center. Cinematic, warm golden Mediterranean light, ivory and gold color palette, soft 35mm film grain, photorealistic.</p></div>
+  <div class="prompt"><span class="tag">shot A · motion</span><p>Slow aerial push-in, gently descending toward the lit terrace as dusk settles.</p></div>
+  <div class="prompt"><span class="tag">shot B · keyframe · Nour + Karim</span><p>Karim leads Nour by the hand up stone steps onto a rooftop terrace decorated with fairy lights and white flowers; her free hand covers her eyes; both are laughing; dusk sky and sea beyond. Cinematic, warm golden Mediterranean light, ivory and gold color palette, shallow depth of field, soft 35mm film grain, photorealistic.</p></div>
+  <div class="prompt"><span class="tag">shot B · motion</span><p>Tracking shot following behind the couple as they arrive; fairy-light bokeh blooms as she uncovers her eyes.</p></div>
+  <div class="prompt"><span class="tag">shot C · keyframe · Nour + Karim</span><p>Karim on one knee holding an open ring box, Nour's hands flying to her mouth in surprise, fairy lights and the dusk sea behind them. Cinematic, warm golden Mediterranean light, ivory and gold color palette, shallow depth of field, soft 35mm film grain, photorealistic.</p></div>
+  <div class="prompt"><span class="tag">shot C · motion</span><p>Slow 90-degree arc around the couple at knee height, string lights sweeping through the bokeh.</p></div>
+  <div class="prompt"><span class="tag">shot D · keyframe · Nour + Karim</span><p>Tight close-up: Karim slides a ring onto Nour's finger, then she pulls him up into a laughing embrace, string-light bokeh everywhere. Cinematic, warm golden Mediterranean light, ivory and gold color palette, shallow depth of field, soft 35mm film grain, photorealistic.</p></div>
+  <div class="prompt"><span class="tag">shot D · motion</span><p>Rack focus from the ring to their embrace; gentle slow motion.</p></div>
+
+  <h3>Reel 4 — "The Cousin in Montreal" · diaspora · ~20s</h3>
+  <p class="hook">Hook: <b>خيّك بكندا؟ عمتك بدبي؟ كلن معزومين 🌍</b></p>
+  <div class="prompt"><span class="tag">shot A · keyframe</span><p>A snowy Montreal residential street at night, snow falling under street lamps, parked cars dusted white, one warm lit window in a brick apartment building. Cinematic, cool blue night palette with one warm golden window, soft 35mm film grain, photorealistic.</p></div>
+  <div class="prompt"><span class="tag">shot A · motion</span><p>Slow push toward the lit window through falling snow.</p></div>
+  <div class="prompt"><span class="tag">shot B · keyframe · Rami</span><p>Rami lies on a couch under a blanket in a dim apartment at night, face lit cool blue-white by his phone, snowy window behind him; the phone buzzes and the screen glow shifts to warm gold. Cinematic, shallow depth of field, soft 35mm film grain, photorealistic.</p></div>
+  <div class="prompt"><span class="tag">shot B · motion</span><p>Close-up; the notification lights his face; his eyebrows rise and he sits up with interest.</p></div>
+  <div class="sr"><b>Screen-recording slot (~8s):</b> invitation opens → he swipes through the slides → taps RSVP → warm confirmation.</div>
+  <div class="prompt"><span class="tag">shot C · keyframe · Rami</span><p>Rami grinning under his blanket, typing a happy reply on his phone, warm golden screen glow on his face, cozy night apartment. Cinematic, shallow depth of field, soft 35mm film grain, photorealistic.</p></div>
+  <div class="prompt"><span class="tag">shot C · motion</span><p>Warm handheld close-up; he chuckles, taps send, and flops back happily.</p></div>
+  <div class="prompt"><span class="tag">shot D · keyframe · Nour + Karim</span><p>Bright morning in a Beirut kitchen: Nour and Karim lean at a sunny counter with coffee, looking at a phone propped against a fruit bowl, mid high-five, joyful. Cinematic, warm golden Mediterranean light, ivory and gold color palette, shallow depth of field, soft 35mm film grain, photorealistic.</p></div>
+  <div class="prompt"><span class="tag">shot D · motion</span><p>Push-in toward the couple as they high-five and laugh, morning light flaring softly.</p></div>
+  <div class="sr"><b>Screen-recording slot (~4s):</b> the live dashboard — RSVP count ticking up by one.</div>
+
+  <h3>Reel 5 — "The Wedding" · scale · ~20s</h3>
+  <p class="hook">Hook: <b>٣٠٠ معزوم. ٠ بطاقة مطبوعة. رابط شخصي لكل ضيف.</b></p>
+  <div class="prompt"><span class="tag">shot A · keyframe</span><p>A Lebanese mountain wedding venue at blue hour: long candlelit tables under old olive trees, string lights, white florals, the sea far below in the distance. Cinematic, warm golden Mediterranean light, ivory and gold color palette, soft 35mm film grain, photorealistic.</p></div>
+  <div class="prompt"><span class="tag">shot A · motion</span><p>Sweeping aerial arc over the venue as the string lights twinkle on.</p></div>
+  <div class="prompt"><span class="tag">shot B · keyframe · Nour + Karim</span><p>A zaffe wedding entrance: traditional Lebanese drummers in embroidered vests mid-strike, Nour and Karim entering behind them through arches of sparklers, guests cheering and raising their phones. Cinematic, warm golden Mediterranean light, ivory and gold color palette, shallow depth of field, soft 35mm film grain, photorealistic.</p></div>
+  <div class="prompt"><span class="tag">shot B · motion</span><p>Slow-motion tracking shot moving ahead of the couple; sparks drift; drum hits land.</p></div>
+  <div class="prompt"><span class="tag">shot C · keyframe</span><p>A dabke circle at a Lebanese wedding: guests linked arm in arm mid-step, dresses in motion blur, a live band behind, joyful energy. Cinematic, warm golden Mediterranean light, ivory and gold color palette, shallow depth of field, soft 35mm film grain, photorealistic.</p></div>
+  <div class="prompt"><span class="tag">shot C · motion</span><p>Orbit around the dabke circle at chest height, slow motion, stomps landing together.</p></div>
+  <div class="prompt"><span class="tag">shot D · keyframe · Nour + Karim</span><p>First dance: Nour and Karim slow-dancing alone under a canopy of string lights, the guests a warm ring of bokeh around them. Cinematic, warm golden Mediterranean light, ivory and gold color palette, shallow depth of field, soft 35mm film grain, photorealistic.</p></div>
+  <div class="prompt"><span class="tag">shot D · motion</span><p>Slow orbit with a gentle lens flare; she spins once under his hand.</p></div>
+
+  <h2 id="adbank">3 · Ad bank — alternate hooks &amp; test assets</h2>
+  <p>Many hook variants are <b>re-cuts of reels 2/3/4</b> — no new generation needed, just different first-3-seconds in edit. The following are new generations.</p>
+  <div class="prompt"><span class="tag">cost ad · keyframe</span><p>A towering stack of three hundred ivory printed wedding invitations tied with ribbon on a dark wooden table, next to a single smartphone standing upright glowing warm gold, a golden envelope motif on its screen as an unreadable glow, dramatic single spotlight. Cinematic, ivory and gold color palette, soft 35mm film grain, photorealistic.</p></div>
+  <div class="prompt"><span class="tag">cost ad · motion</span><p>Slow push past the looming paper stack toward the phone as its glow brightens.</p></div>
+  <div class="prompt"><span class="tag">chaos ad · keyframe</span><p>A stressed bride-to-be at a desk buried in paper RSVP lists, sticky notes and crossed-out spreadsheets, her phone showing dozens of notification bubbles as unreadable glows, dramatic overhead light. Cinematic, shallow depth of field, soft 35mm film grain, photorealistic.</p></div>
+  <div class="prompt"><span class="tag">chaos ad · motion</span><p>Overhead camera slowly descending; she drops her pen and sighs, papers flutter.</p></div>
+  <div class="prompt"><span class="tag">speed ad · keyframe</span><p>Macro shot of a blank golden wax seal being pressed onto a thick ivory envelope, luxurious paper texture, gleaming wax detail. Cinematic, ivory and gold color palette, soft 35mm film grain, photorealistic.</p></div>
+  <div class="prompt"><span class="tag">speed ad · motion</span><p>The seal presses and lifts in macro slow motion; the envelope tilts up and begins to glow open.</p></div>
+  <div class="prompt"><span class="tag">diaspora ad · keyframe</span><p>The Earth at night seen from space, glowing golden threads arcing out of Beirut toward Montreal, Paris, Dubai, Sydney and São Paulo, each thread ending in a small burst of golden light. Cinematic, deep navy and gold palette, photorealistic.</p></div>
+  <div class="prompt"><span class="tag">diaspora ad · motion</span><p>Camera drifts along the arcing threads as each destination lights up in sequence.</p></div>
+  <div class="prompt"><span class="tag">UGC-style story spot · keyframe · Nour (label as story/dramatization in caption)</span><p>Nour films herself selfie-style in a bright modern kitchen, holding a coffee cup, talking excitedly to the camera, natural daylight, casual authentic vlog feel, photorealistic.</p></div>
+  <div class="prompt"><span class="tag">UGC-style · lipsync line (Speak)</span><p>ما طبعنا ولا بطاقة. وكل ضيف وصلو رابط باسمو… جد، جد!</p></div>
+  <p class="meta">Bumpers (6s each): re-cut the wax-seal macro, mama's smile (reel 3 shot C), and the confetti wink (reel 6 shot A) with the logo end-card. No new generation.</p>
+
+  <h2 id="statics">4 · Launch kit statics (Soul stills — run between video queues)</h2>
+  <div class="warn"><b>Reminder:</b> never let the model render Arabic text or the معزوم wordmark — generate clean backgrounds with negative space and set the type yourself tomorrow (the product repo already has licensed Amiri + Cormorant fonts).</div>
+  <div class="prompt"><span class="tag">profile picture base · 1:1</span><p>A luxurious blank gold wax seal on warm ivory handmade paper, perfectly centered, soft top light, macro detail, minimal, generous clean space around it. Luxury stationery style, photorealistic.</p></div>
+  <div class="prompt"><span class="tag">banner base</span><p>Warm ivory handmade paper texture with delicate gold-foil botanical line art in the corners and an open golden envelope resting center-left, elegant negative space on the right. Luxury stationery style, photorealistic.</p></div>
+  <div class="prompt"><span class="tag">highlight covers · 5 variants · 1:1</span><p>A minimal gold line icon of [a sealed envelope / a gift tag / a hand tapping a phone / five small stars / a chat bubble] centered on warm ivory handmade paper texture, luxury stationery style, lots of negative space.</p></div>
+  <div class="prompt"><span class="tag">couple teaser stills · Nour + Karim · 3 variants</span><p>Engagement-shoot portrait of Nour and Karim: [embracing on a fairy-lit rooftop terrace at dusk / walking laughing along the Beirut corniche at golden hour / close embrace with the engagement ring catching the light]. Cinematic, warm golden Mediterranean light, ivory and gold color palette, shallow depth of field, soft 35mm film grain, photorealistic.</p></div>
+  <div class="prompt"><span class="tag">product frame base</span><p>A smartphone standing upright on flowing ivory silk, its screen pure white and blank, a few gold flower petals drifting, soft studio light, luxury product photography style, photorealistic.</p></div>
+  <p class="meta">Real product screenshots get composited onto the blank screens in edit.</p>
+
+  <h2 id="broll">5 · B-roll vault — fill every idle queue slot</h2>
+  <p>One-liners: append the style suffix <i>"Cinematic, warm golden Mediterranean light, ivory and gold color palette, soft 35mm film grain, photorealistic"</i> and a simple motion ("slow push-in" / "slow orbit" / "slow motion"). Rough targets: 2 takes each.</p>
+  <ul class="grid2">
+    <li>Candlelit stone church aisle, white florals on pews</li>
+    <li>Rings resting on a calligraphy invitation, macro</li>
+    <li>Wedding dress on a carved wooden door, morning light</li>
+    <li>Groom fastening cufflinks, watch close-up</li>
+    <li>Bride's shoes and perfume on a marble vanity</li>
+    <li>Decorated wedding car with white ribbons driving a mountain road</li>
+    <li>Wedding convoy honking down a village road, hands waving from windows</li>
+    <li>Rice and rose petals thrown over a couple exiting a church</li>
+    <li>Sparkler tunnel, couple running through, slow motion</li>
+    <li>Cake cutting with cold-spark fountains</li>
+    <li>Champagne tower being poured, golden light</li>
+    <li>Derbake drummer's hands, macro slow motion</li>
+    <li>Oud player's fingers on strings, warm stage light</li>
+    <li>Grandmother clapping and laughing at a wedding table</li>
+    <li>Kids in formalwear spinning on the dance floor</li>
+    <li>Mezze table spread overhead, hands reaching in</li>
+    <li>Arak glasses clinking in a toast, condensation macro</li>
+    <li>Fireworks over a bay at night from a terrace</li>
+    <li>Jounieh bay at night from above, lights on the water</li>
+    <li>Drone over Raouché rocks at sunset</li>
+    <li>Cedar forest path, couple walking hand in hand</li>
+    <li>Gold souk window, rings gleaming</li>
+    <li>Bride squad in matching robes laughing, getting ready</li>
+    <li>Dress twirl on the dance floor, slow motion</li>
+    <li>String lights over long tables, wind moving them gently</li>
+    <li>Seaside venue at blue hour, candles flickering</li>
+    <li>Confetti falling through a spotlight, macro</li>
+    <li>Night dance floor wide shot, crowd jumping in unison</li>
+    <li>Mountain village rooftops at golden hour, bells ringing</li>
+    <li>Two espresso cups and an envelope on a balcony table, morning</li>
+  </ul>
+
+  <h2 id="wrap">End of day — before the window closes</h2>
+  <ul>
+    <li>☐ Every take downloaded and named (<code>r2-sA-t03.mp4</code>), including rejects</li>
+    <li>☐ Soul ID cast saved (Nour, Karim, Mama, Rami) — reusable after today on any plan</li>
+    <li>☐ Re-roll list cleared: any shot with fewer than 2 usable takes gets a final round</li>
+    <li>☐ Bonus if minutes remain: extra couple stills in different outfits/settings — future posts</li>
+  </ul>
+
+  <h2>Not-Higgsfield checklist (tomorrow is fine)</h2>
+  <div class="tablewrap"><table>
+    <tr><th>Task</th><th>Notes</th></tr>
+    <tr><td>Register ma3zoum.com + ma3zoum.me</td><td>~$20, before anything goes public</td></tr>
+    <tr><td>Create nour-karim demo event</td><td>on the live platform, <b>royalty-free music</b> (recordings capture audio)</td></tr>
+    <tr><td>Screen recordings</td><td>envelope open · honorific cover · slide swipe · RSVP tap · dashboard tick (phone, 9:16)</td></tr>
+    <tr><td>Edit reels</td><td>CapCut: splice SR slots, AR/EN captions, hooks, end cards with your own fonts</td></tr>
+    <tr><td>WhatsApp Business + bio link page</td><td>per the campaign spec in the repo</td></tr>
+  </table></div>
+
+  <p class="meta" style="margin-top:40px">Ma3zoum · معزوم · campaign spec: docs/superpowers/specs/2026-07-28-ma3zoum-marketing-campaign-design.md</p>
+</main>
+<script>
+  document.querySelectorAll('.prompt').forEach(function(box){
+    var btn=document.createElement('button');btn.textContent='Copy';
+    btn.addEventListener('click',function(){
+      var text=Array.prototype.map.call(box.querySelectorAll('p'),function(p){return p.textContent.trim()}).join('\n');
+      (navigator.clipboard?navigator.clipboard.writeText(text):Promise.reject()).then(function(){
+        btn.textContent='Copied ✓';setTimeout(function(){btn.textContent='Copy'},1200);
+      }).catch(function(){
+        var ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();
+        try{document.execCommand('copy');btn.textContent='Copied ✓';setTimeout(function(){btn.textContent='Copy'},1200);}catch(e){}
+        document.body.removeChild(ta);
+      });
+    });
+    box.appendChild(btn);
+  });
+</script>
