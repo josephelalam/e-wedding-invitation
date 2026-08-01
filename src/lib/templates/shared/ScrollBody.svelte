@@ -56,6 +56,28 @@
 	</div>
 
 	<div class="column">
+		<div class="overture-block" use:progress>
+			<svg class="ring" viewBox="0 0 120 120" aria-hidden="true">
+				<circle class="ring-track" cx="60" cy="60" r="54" />
+				<circle class="ring-draw" cx="60" cy="60" r="54" />
+			</svg>
+			<p class="ring-mark" aria-hidden="true">{ctx.monogram}</p>
+
+			<div class="engraved">
+				<p class="rule-line" style="--slice:0">
+					<span class="hairline"></span><span class="caps">{ctx.dateParts.weekday}</span><span
+						class="hairline"
+					></span>
+				</p>
+				<p class="daymonth" style="--slice:1">{ctx.dateParts.month} {ctx.dateParts.day}</p>
+				<p class="rule-line" style="--slice:2">
+					<span class="hairline"></span><span class="caps">{ctx.dateParts.year}</span><span
+						class="hairline"
+					></span>
+				</p>
+			</div>
+		</div>
+
 		{#each sections as section, index (section)}
 			<section
 				class="plane"
@@ -217,8 +239,102 @@
 		white-space: pre-line;
 	}
 
+	.overture-block {
+		min-height: 100svh;
+		display: grid;
+		place-items: center;
+		align-content: center;
+		gap: 0.4rem;
+		padding: 12vh 1.6rem;
+		box-sizing: border-box;
+		position: relative;
+	}
+
+	.ring {
+		width: 8.5rem;
+		height: 8.5rem;
+		grid-area: 1 / 1;
+		overflow: visible;
+	}
+
+	.ring-track,
+	.ring-draw {
+		fill: none;
+		stroke-width: 1;
+		/* r=54 -> circumference = 2*pi*54 = 339.29 */
+		--circ: 339.29;
+	}
+
+	.ring-track {
+		stroke: color-mix(in srgb, var(--ei-accent) 18%, transparent);
+	}
+
+	.ring-draw {
+		stroke: var(--ei-accent);
+		stroke-dasharray: var(--circ);
+		stroke-dashoffset: calc((1 - var(--p, 1)) * var(--circ));
+		transform: rotate(-90deg);
+		transform-origin: 60px 60px;
+	}
+
+	.ring-mark {
+		grid-area: 1 / 1;
+		margin: 0;
+		place-self: center;
+		font-family: var(--ei-font-display);
+		font-size: 1.7rem;
+		color: var(--ei-accent);
+		opacity: var(--p, 1);
+	}
+
+	.engraved {
+		margin-top: 2.4rem;
+		width: min(20rem, 100%);
+		text-align: center;
+	}
+
+	/* Each line lifts on its own slice of the same variable — pure CSS stagger,
+		   no per-element JS. slice 0 starts at p=0.10, each next one 0.12 later. */
+	.engraved .rule-line,
+	.engraved .daymonth {
+		--start: calc(0.1 + var(--slice) * 0.12);
+		--step: clamp(0, calc((var(--p, 1) - var(--start)) * 4), 1);
+		margin: 0;
+		opacity: var(--step);
+		transform: translateY(calc((1 - var(--step)) * 14px));
+	}
+
+	.rule-line {
+		display: flex;
+		align-items: center;
+		gap: 0.9rem;
+	}
+
+	.rule-line .hairline {
+		flex: 1;
+		height: 1px;
+		background: color-mix(in srgb, var(--ei-accent) 45%, transparent);
+		transform: scaleX(var(--step));
+	}
+
+	.rule-line .caps {
+		font-family: var(--ei-font-caps);
+		font-size: 0.72rem;
+		letter-spacing: 0.3em;
+		text-indent: 0.3em;
+		text-transform: uppercase;
+		color: var(--ei-muted);
+	}
+
+	.daymonth {
+		font-family: var(--ei-font-display);
+		font-size: clamp(1.8rem, 7vw, 2.4rem);
+		padding: 0.5rem 0;
+	}
+
 	/* Arabic script takes no tracking — letterspacing breaks connected letters */
-	:global([dir='rtl']) .gift-heading {
+	:global([dir='rtl']) .gift-heading,
+	:global([dir='rtl']) .rule-line .caps {
 		letter-spacing: 0;
 		text-indent: 0;
 	}
