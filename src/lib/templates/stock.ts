@@ -24,7 +24,14 @@ export const STOCK_SETS: Record<TemplateId, string[]> = {
 		'/photos/rings-pleats.jpg',
 		'/photos/hands-couple.jpg'
 	],
-	cinematic: ['/photos/beach-sunset.jpg', '/photos/chandelier.jpg', '/photos/rings-bokeh.jpg']
+	cinematic: ['/photos/beach-sunset.jpg', '/photos/chandelier.jpg', '/photos/rings-bokeh.jpg'],
+	depth: [
+		'/photos/field-walk.jpg',
+		'/photos/chandelier.jpg',
+		'/photos/rings-pleats.jpg',
+		'/photos/table-lights.jpg',
+		'/photos/beach-sunset.jpg'
+	]
 };
 
 /** Owner photos when set, else the template's curated stock set. */
