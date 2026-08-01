@@ -230,13 +230,20 @@ the DOM. After disposal the GPU is idle for the rest of the visit.
 
 ## 6. Fallback matrix
 
-| Condition                      | `depth`                         | `overture`                                   |
-| ------------------------------ | ------------------------------- | -------------------------------------------- |
-| No JS                          | all content, settled, no motion | sealed envelope, card content readable below |
-| `prefers-reduced-motion`       | not registered; `--p` unset     | envelope pre-opened, no scrub                |
-| JS, no WebGL                   | —                               | CSS 3D envelope                              |
-| WebGL available                | —                               | three.js, same scrub                         |
-| Chunk 404 (120 s cache window) | —                               | `.catch()` → CSS envelope, invisibly         |
+No-JS and `prefers-reduced-motion` both leave `--p` unset, so they are the same
+rest state by construction — one state to reason about and one to test. An
+earlier draft asked for a sealed envelope on no-JS and an open one on reduced
+motion; that would have required the engine to write `--p: 1` explicitly on the
+reduced-motion path, and it bought nothing a guest cares about. Amended
+2026-08-02 during pre-flight review.
+
+| Condition                      | `depth`                         | `overture`                                |
+| ------------------------------ | ------------------------------- | ----------------------------------------- |
+| No JS                          | all content, settled, no motion | envelope open, card and story readable    |
+| `prefers-reduced-motion`       | not registered; `--p` unset     | envelope open, no scrub — same rest state |
+| JS, no WebGL                   | —                               | CSS 3D envelope                           |
+| WebGL available                | —                               | three.js, same scrub                      |
+| Chunk 404 (120 s cache window) | —                               | `.catch()` → CSS envelope, invisibly      |
 
 ## 7. Budget
 
