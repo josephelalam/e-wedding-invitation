@@ -3,8 +3,15 @@
  *
  * One rAF loop serves every registered element. Per frame it reads
  * `window.scrollY` once and then does nothing but arithmetic and
- * `style.setProperty` — element offsets are cached at registration and
- * refreshed only on resize, so the loop never forces layout.
+ * `style.setProperty` — element offsets, viewport height, and document
+ * height are all cached at registration and refreshed only on resize, so
+ * the loop never forces layout.
+ *
+ * The loop also parks itself once a frame produces no change (and whenever
+ * `document.hidden`), instead of running at 60fps for the whole visit —
+ * guests leave invitations open while music plays. `wake()` is wired to
+ * `scroll`/`resize`/`visibilitychange`, so a parked loop resumes within a
+ * frame of the next scroll.
  *
  * Choreography stays declarative in CSS. Every driven property must be
  * written `var(--p, X)` where X is the settled value, so a guest with no JS
@@ -40,11 +47,17 @@ type Entry = {
 	visible: boolean;
 };
 
-const entries = new Set<Entry>();
+const entries = new Map<HTMLElement, Entry>();
 let frame = 0;
 let observer: IntersectionObserver | undefined;
 let resizeObserver: ResizeObserver | undefined;
 let listening = false;
+
+// Viewport and document height, like element offsets, only change on
+// resize or reflow — cache them so tick() never touches layout-forcing
+// properties.
+let vh = 0;
+let docHeight = 0;
 
 function measure(entry: Entry) {
 	let top = 0;
@@ -57,14 +70,18 @@ function measure(entry: Entry) {
 	entry.height = entry.node.offsetHeight;
 }
 
+function measureGlobals() {
+	vh = window.innerHeight;
+	docHeight = document.documentElement.scrollHeight;
+}
+
 function tick() {
 	frame = 0;
 	const scrollY = window.scrollY;
-	const vh = window.innerHeight;
-	const docHeight = document.documentElement.scrollHeight;
 	let active = false;
+	let changed = false;
 
-	for (const entry of entries) {
+	for (const entry of entries.values()) {
 		if (!entry.visible) continue;
 		active = true;
 		const value =
@@ -75,10 +92,13 @@ function tick() {
 		if (value !== entry.last) {
 			entry.last = value;
 			entry.node.style.setProperty('--p', value.toFixed(4));
+			changed = true;
 		}
 	}
 
-	if (active && !document.hidden) frame = requestAnimationFrame(tick);
+	// Park once a frame produces no change — a position:fixed entry is
+	// always "active" (intersecting), so `active` alone would never park.
+	if (active && changed && !document.hidden) frame = requestAnimationFrame(tick);
 }
 
 function wake() {
@@ -92,18 +112,20 @@ function ensureGlobals() {
 
 	observer = new IntersectionObserver((records) => {
 		for (const record of records) {
-			for (const entry of entries) {
-				if (entry.node !== record.target) continue;
-				// The page-mode plane is position:fixed and always intersecting;
-				// view-mode entries park the loop once they leave.
-				entry.visible = record.isIntersecting;
-			}
+			// The page-mode plane is position:fixed and always intersecting;
+			// view-mode entries park the loop once they leave.
+			const entry = entries.get(record.target as HTMLElement);
+			if (entry) entry.visible = record.isIntersecting;
 		}
 		wake();
 	});
 
+	// document.documentElement's box grows with content reflow (image loads,
+	// dynamic sections, fonts swapping in), not just window resizes, so this
+	// one observer target keeps both offsets and docHeight/vh current.
 	resizeObserver = new ResizeObserver(() => {
-		for (const entry of entries) measure(entry);
+		for (const entry of entries.values()) measure(entry);
+		measureGlobals();
 		wake();
 	});
 	resizeObserver.observe(document.documentElement);
@@ -125,14 +147,15 @@ export const progress: Action<HTMLElement, ProgressMode | undefined> = (node, mo
 	ensureGlobals();
 	const entry: Entry = { node, mode, top: 0, height: 0, last: -1, visible: false };
 	measure(entry);
-	entries.add(entry);
+	measureGlobals();
+	entries.set(node, entry);
 	observer?.observe(node);
 	wake();
 
 	return {
 		destroy() {
 			observer?.unobserve(node);
-			entries.delete(entry);
+			entries.delete(node);
 			node.style.removeProperty('--p');
 		}
 	};
