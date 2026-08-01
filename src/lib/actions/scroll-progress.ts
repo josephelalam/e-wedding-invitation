@@ -131,7 +131,18 @@ function ensureGlobals() {
 	resizeObserver.observe(document.documentElement);
 
 	window.addEventListener('scroll', wake, { passive: true });
-	window.addEventListener('resize', wake, { passive: true });
+	window.addEventListener(
+		'resize',
+		() => {
+			// window.innerHeight can change without ResizeObserver firing (mobile
+			// toolbar show/hide, on-screen keyboard, window resize without reflow).
+			// Refresh vh here so tick() has current viewport height; docHeight
+			// refreshes via ResizeObserver when content reflows.
+			vh = window.innerHeight;
+			wake();
+		},
+		{ passive: true }
+	);
 	document.addEventListener('visibilitychange', wake);
 }
 
