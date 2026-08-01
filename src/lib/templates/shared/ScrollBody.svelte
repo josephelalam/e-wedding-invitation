@@ -112,8 +112,13 @@
 
 	/* The section components ship their own use:inview entrance. Inside the
 	   scroll shell the plane owns the choreography, so neutralize the
-	   inherited reveal rather than editing every section component. */
-	.scroll-body :global(.reveal) {
+	   inherited reveal rather than editing every section component. Scoped
+	   to .plane-inner (the wrapper every section's content sits in, and the
+	   only place .reveal ever appears here) rather than .scroll-body, so the
+	   three-class selector outweighs InvitationPage's two-class
+	   `.invite :global(.reveal)` — a bare `.scroll-body :global(.reveal)`
+	   ties on specificity and loses to it on source order. */
+	.scroll-body .plane-inner :global(.reveal) {
 		opacity: 1;
 		transform: none;
 		filter: none;
