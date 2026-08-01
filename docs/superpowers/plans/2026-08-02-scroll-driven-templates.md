@@ -544,7 +544,7 @@ Create `src/lib/templates/shared/ScrollBody.svelte`:
 		background-size: cover;
 		background-position: center;
 		/* settles from 1.15 to 1.0 across its transit */
-		transform: scale(calc(1.15 - var(--p, 0.15) * 0.15));
+		transform: scale(calc(1.15 - var(--p, 1) * 0.15));
 		will-change: transform;
 	}
 
@@ -1049,20 +1049,16 @@ Create `src/lib/templates/shared/Envelope.svelte`:
 		overflow: hidden;
 		background: var(--ei-bg);
 		border: 1px solid color-mix(in srgb, var(--ei-accent) 34%, transparent);
-		transform: translateY(calc(var(--rise) * -55%)) rotateX(calc((1 - var(--rise)) * 8deg))
-			scale(calc(1 + var(--fill) * 1.35));
+		/* --dir carries the writing direction so the transform is written once. */
+		--dir: 1;
+		transform: translate(calc(var(--dir) * var(--fill) * 4%), calc(var(--rise) * -55%))
+			rotateX(calc((1 - var(--rise)) * 8deg)) scale(calc(1 + var(--fill) * 1.35));
 		will-change: transform;
 	}
 
 	/* RTL mirrors the card's slight lateral drift on exit. */
 	:global([dir='rtl']) .card {
-		transform: translate(calc(var(--fill) * -4%), calc(var(--rise) * -55%))
-			rotateX(calc((1 - var(--rise)) * 8deg)) scale(calc(1 + var(--fill) * 1.35));
-	}
-
-	:global([dir='ltr']) .card {
-		transform: translate(calc(var(--fill) * 4%), calc(var(--rise) * -55%))
-			rotateX(calc((1 - var(--rise)) * 8deg)) scale(calc(1 + var(--fill) * 1.35));
+		--dir: -1;
 	}
 
 	.card-photo {
