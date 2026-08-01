@@ -15,7 +15,7 @@ export const DEFAULT_SLIDE_ORDER: readonly SectionId[] = SECTION_IDS;
 // The template module system: each id is a full invitation layout under
 // src/lib/templates/<id>/ sharing the same data contract. Adding a module =
 // new id here + a component in the registry.
-export const TEMPLATE_IDS = ['slides', 'edges', 'cinematic', 'depth'] as const;
+export const TEMPLATE_IDS = ['slides', 'edges', 'cinematic', 'depth', 'overture'] as const;
 export type TemplateId = (typeof TEMPLATE_IDS)[number];
 
 const hex = z.string().regex(/^#[0-9a-fA-F]{6}$/, 'expected #rrggbb');

@@ -31,6 +31,15 @@ export const STOCK_SETS: Record<TemplateId, string[]> = {
 		'/photos/rings-pleats.jpg',
 		'/photos/table-lights.jpg',
 		'/photos/beach-sunset.jpg'
+	],
+	// overture is depth's ScrollBody preceded by the envelope — same photo
+	// mood, so it reuses depth's exact curated set rather than a new one.
+	overture: [
+		'/photos/field-walk.jpg',
+		'/photos/chandelier.jpg',
+		'/photos/rings-pleats.jpg',
+		'/photos/table-lights.jpg',
+		'/photos/beach-sunset.jpg'
 	]
 };
 
