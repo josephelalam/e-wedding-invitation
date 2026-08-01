@@ -281,6 +281,23 @@
 	{/if}
 </div>
 
+<noscript>
+	<style>
+		/* No-JS guests can never fire `onopen`, so the SSR-immediate `.track.locked`
+		   lock above would trap them behind the cover forever — this is their only
+		   way in. Only `overflow-x` is reset: `height: 100dvh` is the track's own
+		   base rule (not something `.locked` adds), and the horizontal scroll-snap
+		   layout depends on that box staying viewport-height, so it must not be
+		   touched.
+		   `!important` is required: Svelte scopes `.track.locked` with its own hash
+		   class (e.g. `.track.locked.svelte-abc123`), so a plain `.locked` rule
+		   here would lose the specificity fight. */
+		.track.locked {
+			overflow-x: auto !important;
+		}
+	</style>
+</noscript>
+
 <style>
 	/* Photography is the palette (dispatcher re-scopes surfaces to ivory-over-
 	   ink for this deck; --ei-accent carries the couple's theme). */
