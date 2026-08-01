@@ -29,3 +29,6 @@ test-results
 
 # Playwright
 playwright-report
+
+# SDD controller scratch (ledger, task briefs, reports)
+.superpowers/
