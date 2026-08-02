@@ -31,14 +31,20 @@
 		preview: boolean;
 		// Whether this ScrollBody instance puts the dispatcher's `id="slide-0"`
 		// post-open scroll target (docs/templates.md module contract) on its own
-		// first section. Defaults to true — the original, still-correct behavior
-		// for every template that has nothing between the open gesture and this
-		// shell. `overture` passes false: its 200svh envelope stage sits between
-		// the tap and ScrollBody, so anchoring here would make the dispatcher's
-		// smooth-scroll sweep straight through the whole envelope instead of
-		// leaving the guest at its top to scrub it. `overture` puts `id="slide-0"`
-		// on the envelope stage instead (see Envelope.svelte), so exactly one
-		// element still carries the id.
+		// `.overture-block` — the ring-draw/engraved-date signature moment that
+		// opens every ScrollBody, `depth` included. Defaults to true — the
+		// original, still-correct behavior for every template that has nothing
+		// between the open gesture and this shell. Putting the id on
+		// `sections[0]` instead (what this used to do) carried the guest straight
+		// past that whole block to the first ordinary section — the same
+		// skipped-signature-moment bug `overture` hit and fixed by moving the
+		// anchor off this component entirely. `overture` passes false: its
+		// 200svh envelope stage sits between the tap and ScrollBody, so
+		// anchoring here would make the dispatcher's smooth-scroll sweep
+		// straight through the whole envelope instead of leaving the guest at
+		// its top to scrub it. `overture` puts `id="slide-0"` on the envelope
+		// stage instead (see Envelope.svelte), so exactly one element still
+		// carries the id.
 		ownsSlideAnchor?: boolean;
 	} = $props();
 
@@ -68,7 +74,7 @@
 	</div>
 
 	<div class="column">
-		<div class="overture-block" use:progress>
+		<div class="overture-block" id={ownsSlideAnchor ? 'slide-0' : undefined} use:progress>
 			<svg class="ring" viewBox="0 0 120 120" aria-hidden="true">
 				<circle class="ring-track" cx="60" cy="60" r="54" />
 				<circle class="ring-draw" cx="60" cy="60" r="54" />
@@ -91,13 +97,7 @@
 		</div>
 
 		{#each sections as section, index (section)}
-			<section
-				class="plane"
-				class:hold={holds(section)}
-				id={ownsSlideAnchor && index === 0 ? 'slide-0' : undefined}
-				data-section={section}
-				use:progress
-			>
+			<section class="plane" class:hold={holds(section)} data-section={section} use:progress>
 				<div class="plane-inner">
 					{#if section === 'hero'}
 						<Hero title={ctx.title} welcome={ctx.welcomeText} dateFull={ctx.dateFull} />

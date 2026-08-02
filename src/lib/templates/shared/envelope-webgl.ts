@@ -15,6 +15,7 @@ import {
 	AmbientLight,
 	BufferGeometry,
 	CanvasTexture,
+	Color,
 	DirectionalLight,
 	DoubleSide,
 	Float32BufferAttribute,
@@ -303,14 +304,29 @@ export async function mountEnvelope(
 	key.position.set(-2.5, 3.5, 4);
 	scene.add(key);
 
+	// The CSS envelope never paints a plane in a flat surface color: `.back`/
+	// `.flap` (and `.side`, unmodeled here — see the front-pocket comment
+	// below) are `color-mix(in srgb, var(--ei-bg) 92%, var(--ei-accent))`, a
+	// whisper of accent over the ivory paper, while `.bottom` (the front
+	// pocket) is tinted a little further, 86%/14%. This used to be flat
+	// `options.paper` (0% accent) for back/front and flat `options.accent`
+	// (100% accent, a full saturated gold) for the flap — so the sealed
+	// envelope's top half visibly jumped from ivory to solid gold the instant
+	// the WebGL upgrade swapped in, and back/front carried none of the warmth
+	// the CSS version has. `Color.lerpColors` reproduces both CSS ratios
+	// without a new dependency: three ships `Color` already.
+	const bg = new Color(options.paper);
+	const accent = new Color(options.accent);
+	const linen = new Color().lerpColors(bg, accent, 0.08); // matches .back/.flap's 92%/8% mix
+	const gilt = new Color().lerpColors(bg, accent, 0.14); // matches .bottom's 86%/14% mix
 	const paper = new MeshStandardMaterial({
-		color: options.paper,
+		color: linen,
 		roughness: 0.92,
 		metalness: 0,
 		side: DoubleSide
 	});
-	const lining = new MeshStandardMaterial({
-		color: options.accent,
+	const pocket = new MeshStandardMaterial({
+		color: gilt,
 		roughness: 0.85,
 		metalness: 0.05,
 		side: DoubleSide
@@ -398,10 +414,12 @@ export async function mountEnvelope(
 	group.add(card);
 
 	// The flap: pivoted at its top edge, so the geometry is offset downward
-	// inside a group whose rotation is the hinge.
+	// inside a group whose rotation is the hinge. Same `paper`/`linen`
+	// material as `back` — CSS's `.flap` shares `.back`'s 92%/8% mix, it's
+	// only `.bottom` that gets the stronger 86%/14% tint (see `pocket` above).
 	const flapHinge = new Group();
 	flapHinge.position.set(0, H / 2, 0.03);
-	const flap = new Mesh(plane(W, H / 2), lining);
+	const flap = new Mesh(plane(W, H / 2), paper);
 	flap.position.y = -H / 4;
 	flapHinge.add(flap);
 	group.add(flapHinge);
@@ -428,7 +446,7 @@ export async function mountEnvelope(
 	// matter — the title lost the race by a hair regardless of which way the
 	// tilt leaned. Close to 0.01, the tilt decides it the same way the
 	// browser does.
-	const front = new Mesh(triangle(-W / 2, -H / 2, W / 2, -H / 2, 0, 0), paper);
+	const front = new Mesh(triangle(-W / 2, -H / 2, W / 2, -H / 2, 0, 0), pocket);
 	front.position.z = 0.02;
 	group.add(front);
 
@@ -506,7 +524,7 @@ export async function mountEnvelope(
 			window.removeEventListener('resize', onResize);
 			for (const geometry of geometries) geometry.dispose();
 			paper.dispose();
-			lining.dispose();
+			pocket.dispose();
 			cardMaterial.dispose();
 			cardTexture?.dispose();
 			renderer.dispose();

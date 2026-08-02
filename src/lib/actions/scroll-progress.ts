@@ -7,6 +7,24 @@
  * height are all cached at registration and refreshed only on resize, so
  * the loop never forces layout.
  *
+ * **This module only works for content that scrolls with the document.**
+ * `tick()`'s only input is `window.scrollY`, and `measure()`'s `offsetTop`
+ * walk climbs `offsetParent` all the way to the document, not to whatever
+ * scrolling ancestor the element actually sits inside. Register an element
+ * that instead scrolls inside its own `overflow: auto` box — `slides`'s
+ * `.scroller` or `cinematic`'s `.track`, two of the five shipped layouts —
+ * and it still passes every check here (it intersects the viewport, so the
+ * IntersectionObserver marks it visible) and still gets a `--p` written every
+ * frame; that `--p` just never changes, because scrolling `.scroller`/`.track`
+ * never moves `window.scrollY`. That is worse than this module simply
+ * refusing to run: the whole point of the `var(--p, X)` contract below is
+ * that an element which never registers still renders at its correct,
+ * settled appearance, but an element that registers and then freezes is
+ * stuck mid-pose — half-faded, half-blurred, wherever `--p` happened to
+ * land at registration — for the rest of the visit. Never wire `use:progress`
+ * to an element whose motion should track a scrolling ancestor other than
+ * the document.
+ *
  * The loop also parks itself once a frame produces no change (and whenever
  * `document.hidden`), instead of running at 60fps for the whole visit —
  * guests leave invitations open while music plays. `wake()` is wired to
@@ -134,9 +152,16 @@ function tick() {
 					? stickyProgress(scrollY, entry.stickyHeight, entry.top, entry.height)
 					: computeProgress(scrollY, vh, entry.top, entry.height);
 		// Writing an identical value still invalidates style; skip the no-op.
-		if (value !== entry.last) {
-			entry.last = value;
-			entry.node.style.setProperty('--p', value.toFixed(4));
+		// Compare at the same precision that's actually written: `entry.last`
+		// used to store the raw float while the style got `value.toFixed(4)`,
+		// so a sub-0.0001 delta (below what the string representation can
+		// even show) still counted as "changed" — keeping the loop awake an
+		// extra frame to rewrite a byte-for-byte identical string, exactly the
+		// no-op this comment claims to skip.
+		const rounded = Number(value.toFixed(4));
+		if (rounded !== entry.last) {
+			entry.last = rounded;
+			entry.node.style.setProperty('--p', rounded.toFixed(4));
 			changed = true;
 		}
 	}

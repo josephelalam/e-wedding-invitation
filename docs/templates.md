@@ -63,6 +63,23 @@ normalized `--p` (0→1) onto its element from one shared rAF loop. Three modes:
 `view` (default — 0 as the top edge meets the viewport bottom, 1 as the bottom
 edge meets the viewport top), `page` (whole-document scroll), and `sticky`.
 
+**All three modes assume the registered element scrolls with the document.**
+`tick()`'s only input is `window.scrollY`; `measure()`'s `offsetTop` walk
+climbs `offsetParent` to the document, not to whichever scrolling ancestor
+the element actually sits inside. Register an element that instead scrolls
+inside its own `overflow: auto` box — `slides`'s `.scroller` or `cinematic`'s
+`.track`, two of the five shipped layouts — and it does not fail loudly: it
+passes the IntersectionObserver check (it does intersect the viewport) and
+gets a `--p` written every frame, but that `--p` never changes, because
+scrolling `.scroller`/`.track` never moves `window.scrollY`. That is worse
+than the engine refusing to run. The module's whole guarantee is that unset
+`--p` resolves to the settled, at-rest look (see the authoring rule below),
+so an element that never registers still renders correctly — a **frozen
+wrong** `--p` breaks that guarantee instead, sticking the element mid-pose,
+half-faded and half-blurred, instead of resting settled. Never wire
+`use:progress` to an element whose own ancestor — not the document — is what
+scrolls it.
+
 `sticky` exists because `view` semantics are wrong for a stage pinned at the
 top of the document with `position: sticky`. A 200svh stage with a 100svh
 sticky child reads `--p ≈ 0.333` at rest under `view` — `view` measures an
@@ -77,6 +94,15 @@ where the toolbar showing and hiding changes `innerHeight` but not an
 point arrive before `scrollY` actually gets there, so `--p` hits 1 early and
 holds. `Envelope.svelte`'s 200svh/100svh stage is the one caller today; any
 future sticky-pinned stage needs this mode, not `view`.
+
+This new work sizes everything in `svh` (`.stage`, `.plane`,
+`.overture-block`, `.band`, …) where the three pre-existing templates use
+`dvh`. That split is deliberate, not inconsistent: `svh` is static — it never
+resizes when a mobile toolbar shows or hides — which is exactly why
+`measureStickyHeight` above can measure a sticky child's height once and
+trust it. Size a scroll-driven element in `dvh` instead and its height moves
+under the toolbar the same way `window.innerHeight` does, reopening the
+mismatch `measureStickyHeight` exists to avoid.
 
 **Author every driven property as `var(--p, X)` where X is the settled value.**
 Unset `--p` then resolves to the at-rest appearance, so no-JS and
@@ -97,17 +123,19 @@ gzipped (currently ~127 KB). Never import it eagerly. Its geometry is
 procedural because the CSP (`default-src 'self'`, no `worker-src`) blocks
 DRACO's blob worker.
 
-**Known issue, recorded rather than fixed:** three.js's `TextureLoader` errors
-on SVG images (`texSubImage2D: bad image data`, then a follow-on
-`glTexImage2DRobustANGLE: Texture is immutable` from the driver). At the JS
-layer this fails soft — `mountEnvelope` resolves the texture promise as
-`undefined` rather than throwing — but verified in a real browser, the
-on-screen result is worse than a missing texture: the WebGL canvas renders
-solid black/grey blocks over the envelope, not the envelope minus its photo,
-and it stays that way until the guest scrolls. Real owner uploads are
-JPG/PNG/WebP, but the e2e fixtures and the production demo events use
-`theme/demo/*.svg`, so any WebGL2-capable guest opening an `overture` demo
-event hits this today.
+**SVG photos never reach the GPU as an `<img>`.** three.js's own `TextureLoader`
+hands the raw `<img>` element straight to `texImage2D`, and a browser's GPU
+upload of an SVG source can fail even though the `<img>` itself already fired
+`load` — observed as `texSubImage2D: bad image data` followed by the texture
+going immutable/undefined, which renders as a solid broken-color block, not
+"no photo." `envelope-webgl.ts` never imports `TextureLoader` at all, for
+exactly this reason: its only texture path is `composeCardFace`, which
+rasterizes the photo through an offscreen 2D canvas (`drawImage`, which
+accepts any decoded source, raster or vector, uniformly) before ever handing
+anything to `CanvasTexture`. **The rule for any future texture in this scene:
+rasterize through a 2D canvas first — never hand three.js an `<img>` (or a
+`TextureLoader` URL) directly**, or a vector-source photo reopens this exact
+failure.
 
 ## The open/lock convention (2026-08-02)
 
@@ -125,6 +153,23 @@ a hash class three selectors deep, so a plain override loses the specificity
 fight) — **but the override is not copy-paste between templates**, because
 each one's base CSS is different:
 
+This only works because of a specific, load-bearing HTML parsing rule: with
+scripting enabled (the normal case), the parser treats everything inside
+`<noscript>` — including this `<style>` tag — as opaque raw text, so it never
+becomes a real, active style element; with scripting disabled, the parser
+switches modes and parses that same content as ordinary markup, and the
+`<style>` activates. That's the entire mechanism that makes the override
+apply to no-JS guests only. A refactor that moved this CSS into `{@html}` or
+a client-created `<style>` element would lose that scripting-conditional
+behavior — both apply unconditionally, so the override would activate for
+every guest, JS or not, silently unlocking every cover. No test catches this;
+it has to be caught in review. One more thing that makes these blocks unlike
+the rest of this file: Svelte only scopes the component's own top-level
+`<style>` tag, not markup sitting inert inside `<noscript>`, so
+`.scroller.locked`/`.track.locked`/etc. here are genuinely unscoped, global
+CSS selectors — the `!important` is compensating for both a specificity gap
+_and_ the lack of Svelte's usual scoping hash.
+
 - `slides` and `cinematic` reset only one overflow axis (`overflow-y` /
   `overflow-x` respectively). Their `.locked` rule never touches height, so
   resetting height too would be pointless at best — and if you add it
@@ -140,7 +185,11 @@ each one's base CSS is different:
   cover still sits on top of the whole deck forever, since a no-JS guest can
   never fire `onopen` to add the `.cover.gone` class that would normally hide
   it. The override applies `.cover.gone`'s own declarations
-  (`opacity`/`visibility`/`pointer-events`) directly.
+  (`opacity`/`visibility`/`pointer-events`) directly. What the guest trades
+  for that: the personalized greeting (`t('cover.dear', …)`, "For \<guest\>")
+  lives only on this cover, nowhere else in the deck, so a no-JS guest on
+  `cinematic` reaches every scene but never sees their own name addressed —
+  an accepted, deliberate gap (see the reasoning above), not an oversight.
 
 Work out the right override for a new template instead of copying one:
 copying `edges`'s reset onto a scroll-snap deck collapses it, and copying
@@ -162,13 +211,22 @@ copying `edges`'s reset onto a scroll-snap deck collapses it, and copying
 3. Add the id to `TEMPLATE_IDS` (`src/lib/themes/schema.ts`) and register it
    in `src/lib/templates/registry.ts` (name + tagline shown in the studio
    picker).
-4. Add a curated entry to `STOCK_SETS` in `src/lib/templates/stock.ts`.
+4. Add an entry to `MEDIA_GUIDE` in
+   `src/routes/studio/(app)/events/[id]/theme/+page.svelte` — the hint line
+   shown above the media manager in Studio → Theme → Photos & Video,
+   explaining what the layout actually does with each photo slot (which is
+   the cover/hero, which are reused as bands or a rotation, which is last,
+   whether a background video applies). `MEDIA_GUIDE` is typed
+   `Record<TemplateId, string>` for the same reason `STOCK_SETS` is below: a
+   `TEMPLATE_IDS` entry with no matching guide fails `npm run check` outright
+   instead of silently showing that layout's owners a blank hint line forever.
+5. Add a curated entry to `STOCK_SETS` in `src/lib/templates/stock.ts`.
    `STOCK_SETS` is typed `Record<TemplateId, string[]>`, so a `TEMPLATE_IDS`
    entry with no matching stock set fails both `npm run check` (a TypeScript
    error, not a runtime surprise) and `tests/unit/stock.test.ts` outright —
    there's no way to add a template without doing this. At least 3 images,
    each an existing `/photos/<name>.jpg` path under `static/photos`.
-5. Rules every module must keep: theme colors/fonts come from the `--ei-*`
+6. Rules every module must keep: theme colors/fonts come from the `--ei-*`
    CSS variables; `letter-spacing: 0` for RTL (Arabic never tracks — every
    tracked-caps rule needs the `[dir='rtl']` reset, including `text-indent`);
    no external origins (CSP is self + Turnstile only); content must render
@@ -177,13 +235,18 @@ copying `edges`'s reset onto a scroll-snap deck collapses it, and copying
    a gate; include an element with `data-section="rsvp"`, and give exactly
    one element `id="slide-0"` as the dispatcher's post-open scroll target —
    never zero, never two. If you build on `ScrollBody`, its default puts the
-   anchor on its own first section; pass `ownsSlideAnchor={false}` and place
+   anchor on its own `.overture-block` (the ring-draw/engraved-date moment
+   that opens every ScrollBody) rather than on `sections[0]` — anchoring on
+   the first ordinary section instead would carry the guest straight past
+   that signature moment, the same class of bug `ownsSlideAnchor` was
+   introduced to fix for `overture`. Pass `ownsSlideAnchor={false}` and place
    the id yourself on whatever sits between the open gesture and `ScrollBody`
-   instead (see `overture`'s envelope stage) — otherwise the dispatcher's
-   post-open smooth-scroll sails straight through that content to
-   `ScrollBody`'s first section instead of stopping there. The `gifts`
-   section renders only when the owner filled the gifts note text.
-6. Seed a fixture event in `tests/seed/seed-e2e.ts` and add a spec to
+   instead (see `overture`'s envelope stage) if something _else_ already
+   fills that role for your template — otherwise the dispatcher's post-open
+   smooth-scroll sails straight through that content to `ScrollBody`'s
+   `.overture-block` instead of stopping there. The `gifts` section renders
+   only when the owner filled the gifts note text.
+7. Seed a fixture event in `tests/seed/seed-e2e.ts` and add a spec to
    `tests/e2e/templates.spec.ts` asserting the module's signature elements +
    one RSVP round-trip. Two traps whoever writes the no-JS/reduced-motion
    coverage will hit:

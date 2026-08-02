@@ -248,9 +248,23 @@ reduced-motion path, and it bought nothing a guest cares about. Amended
 ## 7. Budget
 
 - `three` is the only new runtime dependency, and it must reach guests
-  **only** through `overture`'s async chunk. A guest served `depth` — or any
-  of the three existing templates — downloads zero additional bytes beyond the
-  ~1.5 KB engine. This is a bundling guarantee, not a `package.json` one.
+  **only** through `overture`'s async chunk — measured and enforced, see
+  below. It does **not** follow that a guest served `depth`, or any of the
+  three pre-existing templates, downloads zero additional bytes: `registry.ts`
+  statically imports all five `Template.svelte` files (so both the guest
+  dispatcher and the studio's instant-preview template switcher can render
+  whichever one is picked), and since none of the five is ever imported from
+  anywhere else, the bundler inlines all of them — plus `ScrollBody`,
+  `Envelope`, and `scroll-progress.ts` — into the one chunk that import graph
+  produces. Measured from a real production build: that chunk (Vite names it
+  `InvitationPage`) is ~54 KB raw / ~16 KB gzipped, and every guest on every
+  template downloads all of it, not just the code for their own event's
+  layout. What the ~1.5 KB figure actually describes is `scroll-progress.ts`
+  in isolation, not what a guest's browser fetches. The guarantee that does
+  hold, and is the one this budget section exists to protect: three.js itself
+  (the ~127 KB payload measured below) never joins that eager chunk — it's
+  reachable only through `overture`'s own `dynamicImports` edge, which is
+  exactly what `tests/unit/bundle.test.ts` walks the build manifest to prove.
 - `overture`'s three.js chunk has a **hard ceiling of 150 KB gzipped, measured
   from the real production build**. If it exceeds that, the fallback is
   hand-rolled WebGL or OGL (~10 KB); a six-plane scene is simple enough for
