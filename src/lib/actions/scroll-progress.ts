@@ -131,7 +131,7 @@ function tick() {
 			entry.mode === 'page'
 				? pageProgress(scrollY, vh, docHeight)
 				: entry.mode === 'sticky'
-					? stickyProgress(scrollY, vh, entry.top, entry.height)
+					? stickyProgress(scrollY, entry.stickyHeight, entry.top, entry.height)
 					: computeProgress(scrollY, vh, entry.top, entry.height);
 		// Writing an identical value still invalidates style; skip the no-op.
 		if (value !== entry.last) {

@@ -44,6 +44,13 @@
 	let canvas: HTMLCanvasElement | undefined = $state();
 	let webgl = $state(false);
 	let scene: EnvelopeScene | undefined;
+	// Set synchronously at the top of upgrade(), before either await, so a
+	// second call arriving while the first is still in flight (webgl/scene
+	// aren't set until both awaits resolve) is rejected instead of also
+	// mounting — two renderers sharing one canvas's WebGL2 context (the
+	// spec guarantees the same context object back) means either can
+	// force-lose it out from under the other.
+	let upgrading = false;
 
 	// Bumped on unmount so an in-flight upgrade() (stuck awaiting the chunk
 	// import or the texture fetch) can tell, once it resolves, that its own
@@ -75,7 +82,8 @@
 	// Fired by the open gesture, so the download overlaps the flap animation
 	// the CSS version is already running.
 	async function upgrade() {
-		if (webgl || scene || !capable()) return;
+		if (webgl || scene || upgrading || !capable()) return;
+		upgrading = true;
 		// Captured before the first await: mountEnvelope() awaits the photo
 		// texture over the network (the normal path — overture always passes
 		// a photo), so this call can easily outlive the component (a template
@@ -116,17 +124,25 @@
 	}
 
 	// Feed the shared scroll progress to the scene, and free the GPU the
-	// moment the overture is over. Mirrors scroll-progress.ts's wake()/tick()
-	// parking strategy exactly (see the comment at the top of that file):
-	// only reschedule the frame while progress is actually changing, and
-	// resume on the same scroll/resize/visibilitychange signals it uses.
-	// Without this a guest who taps open and then stops scrolling — or sets
-	// the phone down with the music playing — holds a WebGL context
-	// rendering an unchanged scene at 60fps for the rest of the visit.
+	// moment the overture is over. Mirrors three of scroll-progress.ts's five
+	// wake sources — scroll, resize, visibilitychange — not the engine's
+	// ResizeObserver/IntersectionObserver pair. Those two exist there to keep
+	// *arbitrary* elements' offsets and visibility current across the whole
+	// document; this pump only ever reads `.stage`, which sits at the document
+	// top (nothing before it in the flow) with a height fixed the moment the
+	// gesture opens it, so no reflow anywhere else on the page can change what
+	// --p resolves to at a given scrollY, and there's no separate visibility
+	// signal worth tracking. Without the three sources this does wire, a guest
+	// who taps open and then stops scrolling — or sets the phone down with the
+	// music playing — holds a WebGL context rendering an unchanged scene at
+	// 60fps for the rest of the visit.
 	$effect(() => {
 		if (!webgl || !scene || !stage) return;
 		let raf = 0;
 		let last = -1;
+		// Set once a frame reads --p unchanged, cleared the moment it changes
+		// again (see below).
+		let grace = false;
 		const tick = () => {
 			raf = 0;
 			const p = currentProgress();
@@ -141,9 +157,25 @@
 				webgl = false;
 				return;
 			}
-			// Only keep chasing frames while progress is still moving; once a
-			// frame produces no change, park and wait for wake().
-			if (changed && !document.hidden) raf = requestAnimationFrame(tick);
+			// --p is written by scroll-progress.ts's own rAF loop; this pump only
+			// ever reads a value already-current if that loop's `scroll` listener
+			// was registered before this effect's, so it runs first on shared
+			// `scroll` events. True today, but nothing enforces it, and if it ever
+			// flipped this pump would read one frame stale and see no change. That
+			// self-heals on the next scroll event mid-gesture — except when the
+			// stale read lands on the last event of a fling that crosses p >= 0.995,
+			// since a parked pump never runs the disposal check above again. One
+			// extra frame here before parking re-reads --p after the engine has had
+			// a chance to catch up, so that case self-heals too.
+			if (changed) {
+				grace = false;
+			} else if (!grace) {
+				grace = true;
+			} else {
+				grace = false;
+				return;
+			}
+			if (!document.hidden) raf = requestAnimationFrame(tick);
 		};
 		const wake = () => {
 			if (raf || document.hidden) return;
