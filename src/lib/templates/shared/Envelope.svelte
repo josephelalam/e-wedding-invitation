@@ -42,6 +42,16 @@
 
 	let stage: HTMLElement | undefined = $state();
 	let canvas: HTMLCanvasElement | undefined = $state();
+	// The WebGL upgrade reads these three elements' live box/font metrics
+	// (getBoundingClientRect / getComputedStyle) to compose the card's face —
+	// see upgrade() below. They stay in the DOM (just opacity:0'd by
+	// `.stage.webgl .env`) for exactly this reason: measuring the real,
+	// currently-rendered CSS is simpler and can't drift from it the way a
+	// second, hand-maintained set of layout constants in the scene module
+	// eventually would.
+	let cardEl: HTMLDivElement | undefined = $state();
+	let cardMarkEl: HTMLParagraphElement | undefined = $state();
+	let cardTitleEl: HTMLHeadingElement | undefined = $state();
 	let webgl = $state(false);
 	let scene: EnvelopeScene | undefined;
 	// Set synchronously at the top of upgrade(), before either await, so a
@@ -94,12 +104,43 @@
 		try {
 			const module = await import('$lib/templates/shared/envelope-webgl');
 			// A renderer swap mid-animation is worse than no upgrade at all.
-			if (gen !== generation || currentProgress() > 0.15 || !canvas) return;
+			if (
+				gen !== generation ||
+				currentProgress() > 0.15 ||
+				!canvas ||
+				!cardEl ||
+				!cardMarkEl ||
+				!cardTitleEl
+			) {
+				return;
+			}
 			const styles = getComputedStyle(stage as HTMLElement);
+			const cardRect = cardEl.getBoundingClientRect();
+			// `--ei-font-display`/`--ei-font-script` already carry the Arabic
+			// fallback face (`fonts.display`/'Great Vibes', 'Amiri', ...} — see
+			// InvitationPage.svelte), so the scene module doesn't need to know
+			// or guess the guest's language, only which face-stack and text
+			// direction the CSS card itself is using right now.
+			const monogramSizePx = parseFloat(getComputedStyle(cardMarkEl).fontSize);
+			const titleSizePx = parseFloat(getComputedStyle(cardTitleEl).fontSize);
+			const titleLineHeightPx = parseFloat(getComputedStyle(cardTitleEl).lineHeight);
+			const gapPx = parseFloat(getComputedStyle(cardEl).rowGap);
 			const mounted = await module.mountEnvelope(canvas, {
 				accent: styles.getPropertyValue('--ei-accent').trim() || '#b8966e',
 				paper: styles.getPropertyValue('--ei-bg').trim() || '#faf7f1',
-				photo
+				ink: styles.getPropertyValue('--ei-text').trim() || '#23201c',
+				photo,
+				monogram,
+				title,
+				dir: styles.direction === 'rtl' ? 'rtl' : 'ltr',
+				monogramFont: styles.getPropertyValue('--ei-font-display').trim() || 'serif',
+				titleFont: styles.getPropertyValue('--ei-font-script').trim() || 'cursive',
+				monogramSizePx: Number.isFinite(monogramSizePx) ? monogramSizePx : 20.8,
+				titleSizePx: Number.isFinite(titleSizePx) ? titleSizePx : 30.4,
+				titleLineHeightPx: Number.isFinite(titleLineHeightPx) ? titleLineHeightPx : 48.6,
+				gapPx: Number.isFinite(gapPx) ? gapPx : 12.8,
+				cardWidth: cardRect.width || 320,
+				cardHeight: cardRect.height || 213
 			});
 			// Re-check both signals now that the texture fetch has resolved:
 			// the component may have been destroyed, or the guest may have
@@ -213,12 +254,12 @@
 	<div class="sticky">
 		<canvas class="gl" class:on={webgl} bind:this={canvas} aria-hidden="true"></canvas>
 		<div class="env" aria-label={title}>
-			<div class="card">
+			<div class="card" bind:this={cardEl}>
 				{#if photo}
 					<div class="card-photo" style="background-image:url('{photo}')"></div>
 				{/if}
-				<p class="card-mark" aria-hidden="true">{monogram}</p>
-				<h1 class="card-title">{title}</h1>
+				<p class="card-mark" aria-hidden="true" bind:this={cardMarkEl}>{monogram}</p>
+				<h1 class="card-title" bind:this={cardTitleEl}>{title}</h1>
 			</div>
 
 			<div class="back"></div>

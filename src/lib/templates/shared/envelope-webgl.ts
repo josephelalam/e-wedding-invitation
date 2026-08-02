@@ -38,6 +38,11 @@ const slice = (p: number, from: number, to: number) => clamp01((p - from) / (to 
 // numbers drifting apart if one is ever tuned later.
 const ENVELOPE_W = 3.6;
 const ENVELOPE_H = 2.4;
+// The card's peak zoom during the "fill" phase (see `apply()` below) — named
+// and shared so the face texture can be sized for the *largest* the card
+// ever renders at (see `composeCardFace`'s resolution comment) without that
+// number drifting out of sync with the transform that actually applies it.
+const CARD_FILL_SCALE = 1.35;
 const FOV_DEG = 38;
 // Headroom around the sealed envelope so it sits centered with clear margin,
 // echoing the CSS envelope's own `min(22rem, 82vw)` sizing (which likewise
@@ -70,42 +75,189 @@ function frameCamera(camera: PerspectiveCamera, canvas: HTMLCanvasElement) {
 }
 
 /**
- * Loads the card's photo as a texture, tolerating any image the loader can't
- * actually turn into GPU-usable pixels.
+ * Loads an arbitrary photo URL into a real, decoded `<img>`.
  *
- * three.js's TextureLoader hands the raw `<img>` element straight to
- * `texImage2D`, and browsers treat SVG sources as a second-class citizen
- * there: the `<img>` fires `load` (so TextureLoader's success callback runs
- * and reports a "loaded" texture), but the subsequent GPU upload can still
- * fail — observed as a `texSubImage2D: bad image data` warning followed by
- * the texture going immutable/undefined, which then renders as a solid
- * broken-color block instead of "no photo." Routing every image through an
- * offscreen 2D canvas first sidesteps that: a canvas is always a fully
- * rasterized bitmap regardless of the source format, which is a source
- * `texImage2D` accepts everywhere. If even that fails (any load error, or a
- * source with no intrinsic size), the card keeps its plain paper color
- * instead of a corrupted texture.
+ * This exists because three.js's own `TextureLoader` hands the raw `<img>`
+ * element straight to `texImage2D`, and browsers treat SVG sources as a
+ * second-class citizen there: the `<img>` fires `load` (so a naive loader
+ * reports success), but the subsequent GPU upload can still fail — observed
+ * as a `texSubImage2D: bad image data` warning followed by the texture going
+ * immutable/undefined, rendering as a solid broken-color block instead of
+ * "no photo." `composeCardFace` below sidesteps that by never handing this
+ * `<img>` to three.js directly: it goes through an offscreen 2D canvas
+ * first, via `drawImage`, which accepts any decoded source (raster or
+ * vector) uniformly — the canvas that results is a plain bitmap `texImage2D`
+ * accepts everywhere.
  */
-async function loadCardTexture(url: string): Promise<Texture | undefined> {
-	try {
-		const image = await new Promise<HTMLImageElement>((resolve, reject) => {
-			const img = new Image();
-			img.onload = () => resolve(img);
-			img.onerror = () => reject(new Error(`card photo failed to load: ${url}`));
-			img.src = url;
-		});
-		if (!image.naturalWidth || !image.naturalHeight) {
-			throw new Error(`card photo has no intrinsic size: ${url}`);
+function loadImage(url: string): Promise<HTMLImageElement> {
+	return new Promise((resolve, reject) => {
+		const img = new Image();
+		img.onload = () => {
+			if (!img.naturalWidth || !img.naturalHeight) {
+				reject(new Error(`photo has no intrinsic size: ${url}`));
+				return;
+			}
+			resolve(img);
+		};
+		img.onerror = () => reject(new Error(`photo failed to load: ${url}`));
+		img.src = url;
+	});
+}
+
+/** `background-size: cover; background-position: center` for a 2D canvas. */
+function drawCover(ctx: CanvasRenderingContext2D, image: HTMLImageElement, w: number, h: number) {
+	const scale = Math.max(w / image.naturalWidth, h / image.naturalHeight);
+	const drawW = image.naturalWidth * scale;
+	const drawH = image.naturalHeight * scale;
+	ctx.drawImage(image, (w - drawW) / 2, (h - drawH) / 2, drawW, drawH);
+}
+
+/** Greedy word wrap: fits `text` inside `maxWidth` at the context's current font. */
+function wrapLines(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
+	const words = text.split(/\s+/).filter(Boolean);
+	if (words.length === 0) return [text];
+	const lines: string[] = [];
+	let line = words[0];
+	for (const word of words.slice(1)) {
+		const candidate = `${line} ${word}`;
+		if (ctx.measureText(candidate).width <= maxWidth) {
+			line = candidate;
+		} else {
+			lines.push(line);
+			line = word;
 		}
+	}
+	lines.push(line);
+	return lines;
+}
+
+/**
+ * Ensures the concrete font faces this composition needs have their bytes in
+ * hand before a single glyph is drawn.
+ *
+ * CSS text can silently repaint once a `@font-face` finishes downloading
+ * (FOUT) — a canvas `fillText` cannot: whatever face is actually resolved at
+ * the moment it runs is what gets baked into the texture forever, with no
+ * second chance at a repaint. `document.fonts.load(font, text)` both fetches
+ * the specific unicode-range subset fonts.css splits each family into
+ * (passing the *real* text, not a placeholder, is what makes the browser
+ * fetch the Arabic subset instead of the Latin one — see `composeCardFace`)
+ * and resolves once ready. A hard timeout guards the case a subset never
+ * arrives at all: better a slightly-late system-font texture than an upgrade
+ * that never finishes because a font request stalled.
+ */
+async function ensureFontsReady(specs: { font: string; text: string }[]): Promise<void> {
+	const loaded = Promise.allSettled(specs.map(({ font, text }) => document.fonts.load(font, text)));
+	const timeout = new Promise<void>((resolve) => setTimeout(resolve, 2000));
+	await Promise.race([loaded.then(() => undefined), timeout]);
+}
+
+type CardFaceOptions = {
+	monogram: string;
+	title: string;
+	dir: 'ltr' | 'rtl';
+	accent: string;
+	paper: string;
+	ink: string;
+	monogramFont: string;
+	titleFont: string;
+	monogramSizePx: number;
+	titleSizePx: number;
+	titleLineHeightPx: number;
+	gapPx: number;
+	photo: string | null;
+	cardWidth: number;
+	cardHeight: number;
+	scale: number;
+};
+
+/**
+ * Composes the card's whole face — faint photo, monogram, couple's names —
+ * onto one offscreen canvas, the same rasterize-everything-to-a-bitmap
+ * approach `loadImage` above exists to feed: `texImage2D` accepts any canvas
+ * regardless of what was drawn into it, so folding text into the same bitmap
+ * costs nothing extra and can't reopen the SVG-upload bug a second time.
+ *
+ * Sized at `cardWidth`/`cardHeight` (Envelope.svelte's real, currently-
+ * invisible CSS `.card` box, measured live) times `scale` (devicePixelRatio,
+ * capped the same way the renderer caps it, times `CARD_FILL_SCALE` — the
+ * card's own peak on-screen zoom), so the texture stays crisp even once the
+ * card has scaled up to nearly fill the screen, not just at its resting
+ * size. All drawing below happens in `cardWidth`/`cardHeight` units via one
+ * `ctx.scale` up front, so it reads as plain CSS-pixel-of-the-card math.
+ *
+ * Never throws: any failure here (missing 2D context, a font that never
+ * resolves, a photo that won't decode) must leave the card exactly as it was
+ * before this feature existed — a plain paper-colored plane — rather than
+ * take the whole scene down over a texture. The CSS envelope is the
+ * fallback for a failed *upgrade*; a failed *texture* must not force that.
+ */
+async function composeCardFace(options: CardFaceOptions): Promise<HTMLCanvasElement | undefined> {
+	try {
 		const canvas = document.createElement('canvas');
-		canvas.width = image.naturalWidth;
-		canvas.height = image.naturalHeight;
-		const context2d = canvas.getContext('2d');
-		if (!context2d) return undefined;
-		context2d.drawImage(image, 0, 0);
-		const texture = new CanvasTexture(canvas);
-		texture.colorSpace = SRGBColorSpace;
-		return texture;
+		canvas.width = Math.max(1, Math.round(options.cardWidth * options.scale));
+		canvas.height = Math.max(1, Math.round(options.cardHeight * options.scale));
+		const ctx = canvas.getContext('2d');
+		if (!ctx) return undefined;
+		ctx.scale(options.scale, options.scale);
+
+		// Paper base — the same `--ei-bg` value `.card`'s own CSS background paints.
+		ctx.fillStyle = options.paper;
+		ctx.fillRect(0, 0, options.cardWidth, options.cardHeight);
+
+		if (options.photo) {
+			try {
+				const image = await loadImage(options.photo);
+				ctx.save();
+				ctx.globalAlpha = 0.28; // matches `.card-photo`'s CSS opacity
+				drawCover(ctx, image, options.cardWidth, options.cardHeight);
+				ctx.restore();
+			} catch {
+				// No photo beats a corrupted one — same tradeoff `.card-photo`'s
+				// `{#if photo}` guard makes: absence renders as plain paper.
+			}
+		}
+
+		await ensureFontsReady([
+			{ font: `400 ${options.monogramSizePx}px ${options.monogramFont}`, text: options.monogram },
+			{ font: `400 ${options.titleSizePx}px ${options.titleFont}`, text: options.title }
+		]);
+
+		// `ctx.direction` is what makes `fillText` shape/order Arabic correctly —
+		// the platform's own text shaper does the work, this just tells it which
+		// way the line runs (mirrors the CSS card's inherited `dir` attribute).
+		ctx.direction = options.dir;
+		ctx.textAlign = 'center';
+		ctx.textBaseline = 'middle';
+		const x = options.cardWidth / 2;
+
+		// Mirrors `.card`'s CSS layout — a centered flex column, mark above
+		// title, `gap` between — since a canvas has no flex box of its own to
+		// do this for us. `monogramLineHeight` only needs to be approximate
+		// (the monogram is always a short, single line); `titleLineHeightPx`
+		// is measured from the live DOM instead, because it stacks per wrapped
+		// line and drifting from the real CSS line-height would visibly bunch
+		// or spread multi-line titles.
+		const monogramLineHeight = options.monogramSizePx * 1.15;
+		ctx.font = `400 ${options.titleSizePx}px ${options.titleFont}`;
+		const titleLines = wrapLines(ctx, options.title, options.cardWidth * 0.92);
+		const titleBlockHeight = titleLines.length * options.titleLineHeightPx;
+		const blockHeight = monogramLineHeight + options.gapPx + titleBlockHeight;
+
+		let y = (options.cardHeight - blockHeight) / 2 + monogramLineHeight / 2;
+		ctx.font = `400 ${options.monogramSizePx}px ${options.monogramFont}`;
+		ctx.fillStyle = options.accent;
+		ctx.fillText(options.monogram, x, y);
+
+		y += monogramLineHeight / 2 + options.gapPx + options.titleLineHeightPx / 2;
+		ctx.font = `400 ${options.titleSizePx}px ${options.titleFont}`;
+		ctx.fillStyle = options.ink;
+		for (const line of titleLines) {
+			ctx.fillText(line, x, y);
+			y += options.titleLineHeightPx;
+		}
+
+		return canvas;
 	} catch {
 		return undefined;
 	}
@@ -113,10 +265,29 @@ async function loadCardTexture(url: string): Promise<Texture | undefined> {
 
 export async function mountEnvelope(
 	canvas: HTMLCanvasElement,
-	options: { accent: string; paper: string; photo: string | null }
+	options: {
+		accent: string;
+		paper: string;
+		ink: string;
+		photo: string | null;
+		monogram: string;
+		title: string;
+		dir: 'ltr' | 'rtl';
+		monogramFont: string;
+		titleFont: string;
+		monogramSizePx: number;
+		titleSizePx: number;
+		titleLineHeightPx: number;
+		gapPx: number;
+		cardWidth: number;
+		cardHeight: number;
+	}
 ): Promise<EnvelopeScene> {
+	// Capped the same way for the renderer's own framebuffer and the card
+	// face's texture below, so "crisp" means the same thing in both places.
+	const dpr = Math.min(window.devicePixelRatio, 2);
 	const renderer = new WebGLRenderer({ canvas, antialias: true, alpha: true });
-	renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+	renderer.setPixelRatio(dpr);
 	renderer.setSize(canvas.clientWidth, canvas.clientHeight, false);
 
 	const scene = new Scene();
@@ -165,9 +336,36 @@ export async function mountEnvelope(
 		metalness: 0,
 		side: DoubleSide
 	});
-	if (options.photo) {
-		cardTexture = await loadCardTexture(options.photo);
-		if (cardTexture) cardMaterial.map = cardTexture;
+	try {
+		const face = await composeCardFace({
+			monogram: options.monogram,
+			title: options.title,
+			dir: options.dir,
+			accent: options.accent,
+			paper: options.paper,
+			ink: options.ink,
+			monogramFont: options.monogramFont,
+			titleFont: options.titleFont,
+			monogramSizePx: options.monogramSizePx,
+			titleSizePx: options.titleSizePx,
+			titleLineHeightPx: options.titleLineHeightPx,
+			gapPx: options.gapPx,
+			photo: options.photo,
+			cardWidth: options.cardWidth,
+			cardHeight: options.cardHeight,
+			// Sized for the card's largest on-screen footprint (see
+			// `composeCardFace`'s doc comment), not just its resting size.
+			scale: dpr * (1 + CARD_FILL_SCALE)
+		});
+		if (face) {
+			cardTexture = new CanvasTexture(face);
+			cardTexture.colorSpace = SRGBColorSpace;
+			cardMaterial.map = cardTexture;
+		}
+	} catch {
+		// composeCardFace already fails soft internally; this belt-and-
+		// suspenders catch covers the CanvasTexture construction itself, so a
+		// texture failure can never take the rest of the scene down with it.
 	}
 	const card = new Mesh(plane(W * 0.92, H * 0.88), cardMaterial);
 	card.position.z = 0.01;
@@ -198,7 +396,20 @@ export async function mountEnvelope(
 		flapHinge.rotation.x = open * (-170 * (Math.PI / 180));
 		card.position.y = rise * H * 0.62;
 		card.rotation.x = (1 - rise) * 0.14;
-		const scale = 1 + fill * 1.35;
+		// The flap, once fully open (a near-180° flip about its top-edge hinge),
+		// comes to rest spatially overlapping the card's own risen position —
+		// both end up occupying roughly the same world Y band above the
+		// envelope's top edge. Z stayed level with the card's original resting
+		// z (0.01, deliberately *behind* `front`'s 0.04 so the sealed envelope
+		// still reads as "tucked in"), the now-legible title got painted over
+		// by the flap for the back half of the rise phase — invisible before
+		// this pass added any text to the card, since two blank shapes
+		// overlapping reads as nothing in particular. Walking the card forward
+		// in step with `rise` keeps it ahead of the flap's fixed post-open z by
+		// the time their footprints actually overlap, without changing
+		// anything about the sealed pose (rise = 0 leaves z untouched).
+		card.position.z = 0.01 + rise * 0.3;
+		const scale = 1 + fill * CARD_FILL_SCALE;
 		card.scale.set(scale, scale, 1);
 		group.rotation.x = (1 - open) * 0.06;
 	}
