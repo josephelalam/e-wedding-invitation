@@ -119,8 +119,50 @@ test.describe('overture template (the envelope)', () => {
 		await page.getByRole('button', { name: 'Open Invitation' }).click();
 		await expect(page.locator('.stage.sealed')).toHaveCount(0);
 
-		// scrubbing advances the overture, then the parallax body follows
-		await page.mouse.wheel(0, 2000);
+		// The envelope itself is scroll-scrubbed (`.stage` uses 'sticky' mode,
+		// see scroll-progress.ts), not just gated by the tap. Read its own --p
+		// rather than trusting DOM presence: once `.overture.locked` is gone,
+		// ScrollBody's whole content becomes unclipped normal-flow content, so
+		// the toBeVisible()/toBeAttached() checks further down would keep
+		// passing even if the scrub engine were deleted outright — they prove
+		// presence, not motion.
+		const stage = page.locator('.stage');
+		const stageP = () => stage.evaluate((el) => Number(el.style.getPropertyValue('--p') || 0));
+
+		// At rest, right after the tap, --p must already read ~0. id="slide-0"
+		// lives on this stage rather than on ScrollBody's first section (see
+		// ScrollBody's `ownsSlideAnchor` prop) precisely so the dispatcher's
+		// post-open scrollIntoView lands here instead of sweeping through the
+		// envelope — a skipped anchor would land scroll further down and this
+		// would read high instead of ~0. A stage stuck in 'view' mode would
+		// also read high here at rest, settling around 0.33 (see
+		// stickyProgress's doc comment in scroll-progress.ts).
+		await expect.poll(stageP).toBeLessThan(0.05);
+
+		// Now prove --p tracks the scroll itself, not just the tap: nudge in
+		// bounded steps rather than one big jump. The stage's whole scrubbable
+		// range is about one viewport tall, so a single large wheel delta (as
+		// this test used to do) can clear the entire range in one step,
+		// leaving only a before/after sample — which can't tell a real
+		// scroll-driven engine from one that merely reaches 1 some other way
+		// (e.g. a fixed-duration reveal timed to elapsed time instead of
+		// scroll position). Sampling the climb is what proves the
+		// relationship between scroll input and --p.
+		let sawMidpoint = false;
+		let last = 0;
+		for (let i = 0; i < 15 && last < 1; i++) {
+			await page.mouse.wheel(0, 150);
+			await page.waitForTimeout(100); // let scroll-progress.ts's rAF loop catch up
+			const p = await stageP();
+			expect(p, `--p went backwards at step ${i}: ${last} -> ${p}`).toBeGreaterThanOrEqual(last);
+			if (p > 0.3 && p < 0.95) sawMidpoint = true;
+			last = p;
+		}
+		expect(sawMidpoint, '--p never passed through the middle of its scrub range').toBe(true);
+		expect(last, '--p never reached the end of its scrub range').toBe(1);
+
+		// scrubbing the envelope all the way open also reveals the parallax
+		// body underneath it
 		await expect(page.getByText('The envelope is yours to open.')).toBeVisible();
 		// gifts is further down the scroll body — not scrolled to yet, so only
 		// its presence in the DOM is the claim here, not on-screen visibility
@@ -167,6 +209,19 @@ test.describe('scroll templates degrade safely', () => {
 		const hero = page.getByText('Scroll gently — the day unfolds as you go.');
 		await hero.scrollIntoViewIfNeeded();
 		await expect(hero).toBeVisible();
+
+		// Re-check after a real scroll happened (scrollIntoViewIfNeeded above
+		// does move the page), not just at registration time: this rules out
+		// the engine having wired up its scroll listener anyway and merely
+		// deferring its first write, which the first poll above — taken before
+		// any scroll occurred — could not distinguish from a genuine bail.
+		await expect
+			.poll(() =>
+				page
+					.locator('.photo-plane')
+					.evaluate((el) => getComputedStyle(el).getPropertyValue('--p').trim())
+			)
+			.toBe('');
 	});
 });
 
@@ -189,6 +244,9 @@ test.describe('scroll templates without JavaScript', () => {
 	// somewhere off-screen.
 	async function assertReachableByNativeScroll(page: Page) {
 		const rsvp = page.locator('[data-section="rsvp"]');
+		// Decorative on its own — toBeVisible() doesn't check clipping (see the
+		// block comment above), so this alone proves nothing about reachability.
+		// It's the nudge-and-recheck loop below that actually establishes it.
 		await expect(rsvp).toBeVisible();
 		const viewport = page.viewportSize();
 		if (!viewport) throw new Error('no viewport size for this project');
