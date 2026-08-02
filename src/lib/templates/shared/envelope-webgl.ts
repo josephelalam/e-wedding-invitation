@@ -5,15 +5,19 @@
  * Envelope.svelte on the open gesture and must never be reachable from an
  * eager import, or three.js lands in every guest's bundle.
  *
- * Geometry is procedural — six planes, no loader, no asset fetch. That is a
- * CSP requirement, not a preference: vite.config.ts sets default-src 'self'
- * with no worker-src override, so DRACO's blob worker is blocked outright.
+ * Geometry is procedural — planes for the back/card/flap, one hand-built
+ * triangle for the front pocket (see `triangle()` below) — no loader, no
+ * asset fetch. That is a CSP requirement, not a preference: vite.config.ts
+ * sets default-src 'self' with no worker-src override, so DRACO's blob
+ * worker is blocked outright.
  */
 import {
 	AmbientLight,
+	BufferGeometry,
 	CanvasTexture,
 	DirectionalLight,
 	DoubleSide,
+	Float32BufferAttribute,
 	Group,
 	Mesh,
 	MeshStandardMaterial,
@@ -314,9 +318,31 @@ export async function mountEnvelope(
 
 	const W = ENVELOPE_W;
 	const H = ENVELOPE_H;
-	const geometries: PlaneGeometry[] = [];
+	const geometries: BufferGeometry[] = [];
 	const plane = (w: number, h: number) => {
 		const geometry = new PlaneGeometry(w, h);
+		geometries.push(geometry);
+		return geometry;
+	};
+	// A flat triangle in the group's local XY plane (z=0) — the three.js
+	// analogue of a CSS clip-path triangle. PlaneGeometry can only ever emit a
+	// rectangle, but the envelope's front pocket and side flaps are triangles
+	// in the CSS reference (`.bottom`/`.side.left`/`.side.right`'s
+	// `clip-path: polygon(...)`), so their geometry has to be built directly
+	// from three vertices — no loader, no extra three.js module, needed for
+	// that. Vertex order is counter-clockwise as seen from +z (same facing
+	// every plane mesh in this scene gets from PlaneGeometry by default), so
+	// `computeVertexNormals` derives (0,0,1) here too and lighting matches.
+	const triangle = (ax: number, ay: number, bx: number, by: number, cx: number, cy: number) => {
+		const geometry = new BufferGeometry();
+		// prettier-ignore
+		const positions = new Float32Array([
+			ax, ay, 0,
+			bx, by, 0,
+			cx, cy, 0
+		]);
+		geometry.setAttribute('position', new Float32BufferAttribute(positions, 3));
+		geometry.computeVertexNormals();
 		geometries.push(geometry);
 		return geometry;
 	};
@@ -380,8 +406,30 @@ export async function mountEnvelope(
 	flapHinge.add(flap);
 	group.add(flapHinge);
 
-	const front = new Mesh(plane(W, H * 0.62), paper);
-	front.position.set(0, -H * 0.19, 0.04);
+	// The front pocket: a triangle mirroring the CSS envelope's `.bottom`
+	// (`clip-path: polygon(0 100%, 50% 50%, 100% 100%)`) over the *whole*
+	// envelope box — apex at dead centre, base along the bottom edge — not a
+	// bottom-anchored rectangle. The card's text block is centred, so a
+	// rectangle tall enough to read as a pocket (the shape this replaces,
+	// `plane(W, H * 0.62)`) necessarily reached above the envelope's centre
+	// and covered it; this triangle's coverage shrinks to zero width at
+	// y = 0, matching the sliver the CSS `.bottom` leaves.
+	//
+	// Its z is deliberately close to the card's own resting z (0.01), not far
+	// in front of it: the CSS reference only gets away with a *flat* triangle
+	// here because `.card` itself is never flat at rest — `apply()`'s resting
+	// tilt physically pushes the card's lower half (where the title sits)
+	// toward the camera by a few hundredths of a unit, past this triangle's
+	// plane, the same way `.card`'s own `rotateX` pushes it past `.bottom`'s
+	// z=0 in the browser (confirmed directly via `elementFromPoint` against
+	// the live CSS card: `.bottom` never wins a hit test anywhere inside
+	// `.card`'s own box at rest, only in the margin outside it). Sitting this
+	// triangle at the old rectangle's 0.04 left no headroom for that tilt to
+	// matter — the title lost the race by a hair regardless of which way the
+	// tilt leaned. Close to 0.01, the tilt decides it the same way the
+	// browser does.
+	const front = new Mesh(triangle(-W / 2, -H / 2, W / 2, -H / 2, 0, 0), paper);
+	front.position.z = 0.02;
 	group.add(front);
 
 	let raf = 0;
@@ -395,12 +443,22 @@ export async function mountEnvelope(
 
 		flapHinge.rotation.x = open * (-170 * (Math.PI / 180));
 		card.position.y = rise * H * 0.62;
-		card.rotation.x = (1 - rise) * 0.14;
+		// Negative, not positive: three.js's Y axis points up, while the CSS
+		// reference's local (pre-transform) axis for this same rotation points
+		// down the page, so the *same-signed* angle tips the card the opposite
+		// way in the two renderers unless negated here. Signed this way, the
+		// card's lower half (negative local Y — where the title sits, see
+		// `front`'s own comment above) tips toward the camera at rest, exactly
+		// like the CSS card's lower half tips toward the guest under its own
+		// `rotateX`. Get the sign wrong and the *upper* half (the monogram)
+		// tips forward instead — the opposite of what the CSS reference does,
+		// and the title loses its one path past `front`'s triangle at rest.
+		card.rotation.x = -(1 - rise) * 0.14;
 		// The flap, once fully open (a near-180° flip about its top-edge hinge),
 		// comes to rest spatially overlapping the card's own risen position —
 		// both end up occupying roughly the same world Y band above the
 		// envelope's top edge. Z stayed level with the card's original resting
-		// z (0.01, deliberately *behind* `front`'s 0.04 so the sealed envelope
+		// z (0.01, deliberately *behind* `front`'s 0.02 so the sealed envelope
 		// still reads as "tucked in"), the now-legible title got painted over
 		// by the flap for the back half of the rise phase — invisible before
 		// this pass added any text to the card, since two blank shapes
