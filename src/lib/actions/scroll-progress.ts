@@ -61,9 +61,33 @@ type Entry = {
 	mode: ProgressMode;
 	top: number;
 	height: number;
+	// 'sticky' mode only: the pinned child's own rendered height. See
+	// measureStickyHeight() for why this can't just be the cached global `vh`.
+	stickyHeight: number;
 	last: number;
 	visible: boolean;
 };
+
+// 'sticky' mode's formula needs "the viewport height as experienced by the
+// pinned child," which is only the same number as `window.innerHeight` if
+// the child is sized with a unit that resolves to the same viewport metric.
+// Envelope.svelte's sticky child is deliberately `100svh` (so the stage
+// never resizes when a mobile toolbar shows/hides), but `window.innerHeight`
+// tracks the *large* viewport on most mobile browsers — taller than the
+// small viewport `svh` resolves to. Feeding that mismatch into stickyProgress
+// makes the unpin point arrive before scrollY actually gets there, so `--p`
+// hits 1 early and holds (the 0.75→1 fill range finishes before the card
+// unpins). Measuring the pinned child directly sidesteps the viewport-unit
+// mismatch instead of requiring every 'sticky'-mode caller to match units
+// with `window.innerHeight`.
+function measureStickyHeight(node: HTMLElement): number {
+	for (const child of node.children) {
+		if (getComputedStyle(child).position === 'sticky') return (child as HTMLElement).offsetHeight;
+	}
+	// No sticky child found (contract violation) — fall back to the node's
+	// own height rather than throwing, matching this module's fail-soft style.
+	return node.offsetHeight;
+}
 
 const entries = new Map<HTMLElement, Entry>();
 let frame = 0;
@@ -86,6 +110,7 @@ function measure(entry: Entry) {
 	}
 	entry.top = top;
 	entry.height = entry.node.offsetHeight;
+	if (entry.mode === 'sticky') entry.stickyHeight = measureStickyHeight(entry.node);
 }
 
 function measureGlobals() {
@@ -177,7 +202,7 @@ export const progress: Action<HTMLElement, ProgressMode | undefined> = (node, mo
 	}
 
 	ensureGlobals();
-	const entry: Entry = { node, mode, top: 0, height: 0, last: -1, visible: false };
+	const entry: Entry = { node, mode, top: 0, height: 0, stickyHeight: 0, last: -1, visible: false };
 	measure(entry);
 	measureGlobals();
 	entries.set(node, entry);

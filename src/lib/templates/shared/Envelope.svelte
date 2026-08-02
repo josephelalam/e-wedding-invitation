@@ -1,4 +1,17 @@
+<script module lang="ts">
+	// WebGL2 support doesn't change mid-session, but probing it always
+	// allocates a real GPU context. Module scope is shared across every
+	// Envelope instance (i.e. every template switch), so this caps the
+	// probe at one context for the whole tab instead of one per switch —
+	// the difference matters on exactly the low-end devices where the
+	// ~8-16 live-context budget bites and `WEBGL_lose_context` (used below
+	// to free the probe context immediately) may not be available to force
+	// the issue.
+	let webgl2Supported: boolean | undefined;
+</script>
+
 <script lang="ts">
+	import { onDestroy } from 'svelte';
 	import { progress } from '$lib/actions/scroll-progress';
 	import type { EnvelopeScene } from '$lib/templates/shared/envelope-webgl';
 
@@ -32,16 +45,26 @@
 	let webgl = $state(false);
 	let scene: EnvelopeScene | undefined;
 
+	// Bumped on unmount so an in-flight upgrade() (stuck awaiting the chunk
+	// import or the texture fetch) can tell, once it resolves, that its own
+	// attempt is stale — see upgrade() below.
+	let generation = 0;
+	onDestroy(() => {
+		generation++;
+	});
+
 	function capable(): boolean {
 		if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return false;
 		const connection = (navigator as { connection?: { saveData?: boolean } }).connection;
 		if (connection?.saveData === true) return false;
 		const memory = (navigator as { deviceMemory?: number }).deviceMemory;
 		if (typeof memory === 'number' && memory < 4) return false;
-		const probe = document.createElement('canvas').getContext('webgl2');
-		if (!probe) return false;
-		probe.getExtension('WEBGL_lose_context')?.loseContext();
-		return true;
+		if (webgl2Supported === undefined) {
+			const probe = document.createElement('canvas').getContext('webgl2');
+			probe?.getExtension('WEBGL_lose_context')?.loseContext();
+			webgl2Supported = !!probe;
+		}
+		return webgl2Supported;
 	}
 
 	function currentProgress(): number {
@@ -53,16 +76,33 @@
 	// the CSS version is already running.
 	async function upgrade() {
 		if (webgl || scene || !capable()) return;
+		// Captured before the first await: mountEnvelope() awaits the photo
+		// texture over the network (the normal path — overture always passes
+		// a photo), so this call can easily outlive the component (a template
+		// switch in the owner's preview) or the scrub (a slow connection). Both
+		// resolve against `generation`/`currentProgress()` below rather than
+		// assuming the world hasn't moved on.
+		const gen = generation;
 		try {
 			const module = await import('$lib/templates/shared/envelope-webgl');
 			// A renderer swap mid-animation is worse than no upgrade at all.
-			if (currentProgress() > 0.15 || !canvas) return;
+			if (gen !== generation || currentProgress() > 0.15 || !canvas) return;
 			const styles = getComputedStyle(stage as HTMLElement);
-			scene = await module.mountEnvelope(canvas, {
+			const mounted = await module.mountEnvelope(canvas, {
 				accent: styles.getPropertyValue('--ei-accent').trim() || '#b8966e',
 				paper: styles.getPropertyValue('--ei-bg').trim() || '#faf7f1',
 				photo
 			});
+			// Re-check both signals now that the texture fetch has resolved:
+			// the component may have been destroyed, or the guest may have
+			// scrolled well past the handoff budget, while it was in flight.
+			// Adopting a stale scene here is exactly the leak/mid-animation-
+			// swap this gate exists to prevent — dispose instead.
+			if (gen !== generation || currentProgress() > 0.15 || !canvas) {
+				mounted.dispose();
+				return;
+			}
+			scene = mounted;
 			webgl = true;
 		} catch {
 			// Guest HTML is edge-cached 120s, so after a deploy the chunk URL can
@@ -75,25 +115,49 @@
 		void upgrade();
 	}
 
-	// Feed the shared scroll progress to the scene, and free the GPU the moment
-	// the overture is over.
+	// Feed the shared scroll progress to the scene, and free the GPU the
+	// moment the overture is over. Mirrors scroll-progress.ts's wake()/tick()
+	// parking strategy exactly (see the comment at the top of that file):
+	// only reschedule the frame while progress is actually changing, and
+	// resume on the same scroll/resize/visibilitychange signals it uses.
+	// Without this a guest who taps open and then stops scrolling — or sets
+	// the phone down with the music playing — holds a WebGL context
+	// rendering an unchanged scene at 60fps for the rest of the visit.
 	$effect(() => {
 		if (!webgl || !scene || !stage) return;
 		let raf = 0;
-		const pump = () => {
+		let last = -1;
+		const tick = () => {
+			raf = 0;
 			const p = currentProgress();
-			scene?.setProgress(p);
+			const changed = p !== last;
+			if (changed) {
+				last = p;
+				scene?.setProgress(p);
+			}
 			if (p >= 0.995) {
 				scene?.dispose();
 				scene = undefined;
 				webgl = false;
 				return;
 			}
-			raf = requestAnimationFrame(pump);
+			// Only keep chasing frames while progress is still moving; once a
+			// frame produces no change, park and wait for wake().
+			if (changed && !document.hidden) raf = requestAnimationFrame(tick);
 		};
-		raf = requestAnimationFrame(pump);
+		const wake = () => {
+			if (raf || document.hidden) return;
+			raf = requestAnimationFrame(tick);
+		};
+		wake();
+		window.addEventListener('scroll', wake, { passive: true });
+		window.addEventListener('resize', wake, { passive: true });
+		document.addEventListener('visibilitychange', wake);
 		return () => {
-			cancelAnimationFrame(raf);
+			window.removeEventListener('scroll', wake);
+			window.removeEventListener('resize', wake);
+			document.removeEventListener('visibilitychange', wake);
+			if (raf) cancelAnimationFrame(raf);
 			scene?.dispose();
 			scene = undefined;
 		};

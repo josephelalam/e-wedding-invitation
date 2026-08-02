@@ -132,7 +132,6 @@ export async function mountEnvelope(
 		card.rotation.x = (1 - rise) * 0.14;
 		const scale = 1 + fill * 1.35;
 		card.scale.set(scale, scale, 1);
-		cardMaterial.opacity = 1;
 		group.rotation.x = (1 - open) * 0.06;
 	}
 

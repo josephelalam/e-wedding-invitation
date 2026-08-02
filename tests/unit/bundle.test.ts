@@ -23,8 +23,14 @@ const MANIFEST_PATH = join(CLIENT_DIR, '.vite/manifest.json');
 // probes `globalThis.__THREE_DEVTOOLS__` unconditionally on load to announce
 // itself to the devtools extension. It's a property name read off a global
 // object, not a local class/binding, so a minifier has no reason — and no
-// safe way — to rename it. `WebGLRenderer` is NOT used here because it's a
-// local class identifier that build minification does rename.
+// safe way — to rename it. `WebGLRenderer` is NOT used here even though it
+// is, in fact, still present in today's emitted chunk — but only inside
+// `console.warn('WebGLRenderer: ...')` string literals and an
+// `isWebGLRenderer` duck-typing property, not as the class identifier
+// itself (which does get renamed like any other local binding). That
+// survival is incidental to today's build output, not structural: a future
+// three.js release that drops those warnings, or a build with property
+// mangling enabled, would silently break a `WebGLRenderer`-based marker.
 const THREE_MARKER = '__THREE_DEVTOOLS__';
 
 type ManifestChunk = {
@@ -68,7 +74,13 @@ function staticallyReachableFiles(manifest: Manifest): Set<string> {
 function readJs(file: string): string | undefined {
 	if (!file.endsWith('.js')) return undefined;
 	const path = join(CLIENT_DIR, file);
-	if (!existsSync(path)) return undefined;
+	if (!existsSync(path)) {
+		// A manifest entry pointing at a file that isn't on disk means a
+		// partial or stale build — silently skipping it would let a real leak
+		// hide behind a missing chunk instead of failing the test that exists
+		// to catch it.
+		throw new Error(`manifest references ${file}, but it is missing from ${CLIENT_DIR}`);
+	}
 	return readFileSync(path, 'utf8');
 }
 
@@ -76,6 +88,13 @@ describe('bundle layout', () => {
 	it('keeps three.js out of every statically-reachable chunk', () => {
 		const manifest = loadManifest();
 		const reachable = staticallyReachableFiles(manifest);
+
+		// A real build's eager closure is dozens of files (36 at the time of
+		// writing). If a manifest schema change ever made the closure
+		// under-compute to near-nothing, this test would pass vacuously and
+		// the lazy-chunk test below would misclassify every missed file as
+		// "lazy" — silently degrading this whole suite into a size check.
+		expect(reachable.size).toBeGreaterThan(10);
 
 		for (const file of reachable) {
 			const source = readJs(file);
