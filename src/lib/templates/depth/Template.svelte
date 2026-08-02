@@ -69,4 +69,22 @@
 		position: relative;
 		z-index: 1;
 	}
+
+	/* Cover.svelte's own `.slide` class carries no sizing — it relies entirely
+	   on whichever parent wraps it to give it viewport height (slides/Template
+	   does this via `.scroller :global(.slide)`). Without an equivalent rule
+	   here, the cover collapses to its intrinsic content height (~495px on a
+	   390x844 viewport) while `.depth.locked` clips a full 100svh box around
+	   both it and ScrollBody, letting ScrollBody's first section show through
+	   the remaining space beneath the cover before the guest has even tapped
+	   open. min-height (not height) so a guest's font-size/zoom that makes the
+	   cover taller than one viewport still gets all its content, matching the
+	   same min-height convention ScrollBody's own `.plane`/`.overture-block`
+	   sections use. */
+	.gate-layer :global(.slide) {
+		min-height: 100svh;
+		display: grid;
+		place-items: center;
+		box-sizing: border-box;
+	}
 </style>
