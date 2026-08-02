@@ -13,7 +13,7 @@
 		"lint": "prettier --check . && eslint .",
 		"format": "prettier --write .",
 		"test:unit": "vitest",
-		"test": "npm run test:unit -- --run && npm run test:e2e",
+		"test": "npm run build && npm run test:unit -- --run && npm run test:e2e",
 		"test:e2e": "playwright install && playwright test",
 		"gen": "wrangler types",
 		"db:generate": "drizzle-kit generate",
@@ -21,6 +21,7 @@
 		"db:migrate:remote": "wrangler d1 migrations apply einvite-db --remote",
 		"deploy:prod": "npm run build && npm run db:migrate:remote && wrangler deploy",
 		"seed": "npm run db:migrate:local && node --experimental-strip-types tests/seed/seed.ts",
+		"seed:demo": "npm run db:migrate:local && node scripts/seed-demo.mjs",
 		"seed:e2e": "npm run db:migrate:local && node --experimental-strip-types tests/seed/seed-e2e.ts",
 		"e2e:server": "npm run build && npm run seed:e2e && wrangler dev --port 8787",
 		"auth:schema": "better-auth generate --config src/lib/server/auth.ts --output src/lib/server/db/auth.schema.ts --yes"
@@ -33,6 +34,7 @@
 		"@sveltejs/vite-plugin-svelte": "^7.1.2",
 		"@types/better-sqlite3": "^7.6.13",
 		"@types/node": "^22",
+		"@types/three": "^0.185.3",
 		"auth": "^1.6.23",
 		"better-auth": "^1.6.23",
 		"better-sqlite3": "^12.11.1",
@@ -53,6 +55,7 @@
 		"wrangler": "^4.97.0"
 	},
 	"dependencies": {
+		"three": "^0.185.1",
 		"uqr": "^0.1.3",
 		"zod": "^4.4.3"
 	}

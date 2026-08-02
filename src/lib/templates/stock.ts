@@ -24,7 +24,23 @@ export const STOCK_SETS: Record<TemplateId, string[]> = {
 		'/photos/rings-pleats.jpg',
 		'/photos/hands-couple.jpg'
 	],
-	cinematic: ['/photos/beach-sunset.jpg', '/photos/chandelier.jpg', '/photos/rings-bokeh.jpg']
+	cinematic: ['/photos/beach-sunset.jpg', '/photos/chandelier.jpg', '/photos/rings-bokeh.jpg'],
+	depth: [
+		'/photos/field-walk.jpg',
+		'/photos/chandelier.jpg',
+		'/photos/rings-pleats.jpg',
+		'/photos/table-lights.jpg',
+		'/photos/beach-sunset.jpg'
+	],
+	// overture is depth's ScrollBody preceded by the envelope — same photo
+	// mood, so it reuses depth's exact curated set rather than a new one.
+	overture: [
+		'/photos/field-walk.jpg',
+		'/photos/chandelier.jpg',
+		'/photos/rings-pleats.jpg',
+		'/photos/table-lights.jpg',
+		'/photos/beach-sunset.jpg'
+	]
 };
 
 /** Owner photos when set, else the template's curated stock set. */

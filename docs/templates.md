@@ -7,11 +7,13 @@ caching — so a new module is purely presentation work.
 
 ## Shipped modules
 
-| id          | Name             | Signature                                                                              |
-| ----------- | ---------------- | -------------------------------------------------------------------------------------- |
-| `slides`    | Signature Deck   | Ken Burns photo wall + scrim behind scroll-snap slides, monochrome ivory, dot rail     |
-| `edges`     | Torn-Paper Story | formal long scroll: verse → families → photos torn like paper between cards, petals    |
-| `cinematic` | Horizon          | horizontal scroll-snap deck: cover gate → formal → ledger → houses → venues → polaroid |
+| id          | Name                    | Signature                                                                                        |
+| ----------- | ----------------------- | ------------------------------------------------------------------------------------------------ |
+| `slides`    | Signature Deck          | Ken Burns photo wall + scrim behind scroll-snap slides, monochrome ivory, dot rail               |
+| `edges`     | Torn-Paper Story        | formal long scroll: verse → families → photos torn like paper between cards, petals              |
+| `cinematic` | Horizon                 | horizontal scroll-snap deck: cover gate → formal → ledger → houses → venues → polaroid           |
+| `depth`     | Depth — Parallax Story  | continuous scroll, fixed photo plane at 0.3x, sections settle in and recede, photo bands between |
+| `overture`  | Overture — The Envelope | `depth` preceded by a scroll-scrubbed envelope open; CSS 3D by default, three.js when available  |
 
 Horizon extras: the getting-ready scene (both `house_*` locations) always
 renders before the ceremony scene regardless of stored sort; a moving swipe
@@ -52,6 +54,147 @@ deck layouts' background video (MP4/WebM ≤ 30 MB). Uploads land in R2 under
 guests and couples never get a file input (`tests/unit/no-photo-upload.test.ts`
 enforces it). `wrangler r2 object put` still works for bulk/manual placement.
 
+## The scroll-progress engine (2026-08-02)
+
+Design spec: `docs/superpowers/specs/2026-08-02-scroll-driven-templates-design.md`.
+
+`src/lib/actions/scroll-progress.ts` exposes `use:progress`, which writes a
+normalized `--p` (0→1) onto its element from one shared rAF loop. Three modes:
+`view` (default — 0 as the top edge meets the viewport bottom, 1 as the bottom
+edge meets the viewport top), `page` (whole-document scroll), and `sticky`.
+
+**All three modes assume the registered element scrolls with the document.**
+`tick()`'s only input is `window.scrollY`; `measure()`'s `offsetTop` walk
+climbs `offsetParent` to the document, not to whichever scrolling ancestor
+the element actually sits inside. Register an element that instead scrolls
+inside its own `overflow: auto` box — `slides`'s `.scroller` or `cinematic`'s
+`.track`, two of the five shipped layouts — and it does not fail loudly: it
+passes the IntersectionObserver check (it does intersect the viewport) and
+gets a `--p` written every frame, but that `--p` never changes, because
+scrolling `.scroller`/`.track` never moves `window.scrollY`. That is worse
+than the engine refusing to run. The module's whole guarantee is that unset
+`--p` resolves to the settled, at-rest look (see the authoring rule below),
+so an element that never registers still renders correctly — a **frozen
+wrong** `--p` breaks that guarantee instead, sticking the element mid-pose,
+half-faded and half-blurred, instead of resting settled. Never wire
+`use:progress` to an element whose own ancestor — not the document — is what
+scrolls it.
+
+`sticky` exists because `view` semantics are wrong for a stage pinned at the
+top of the document with `position: sticky`. A 200svh stage with a 100svh
+sticky child reads `--p ≈ 0.333` at rest under `view` — `view` measures an
+element's _transit through_ the viewport, but a pinned element never
+transits, it holds still while the guest scrolls its own height away
+underneath, so `view` reports progress for a transit that never happens.
+`sticky` instead computes `(scrollY - top) / (stickyHeight - …)` across the
+stage's own pin range, and it measures the pinned child's real rendered
+height rather than assuming `window.innerHeight` — the two differ on mobile,
+where the toolbar showing and hiding changes `innerHeight` but not an
+`svh`-sized child. Feeding that mismatch into the formula makes the unpin
+point arrive before `scrollY` actually gets there, so `--p` hits 1 early and
+holds. `Envelope.svelte`'s 200svh/100svh stage is the one caller today; any
+future sticky-pinned stage needs this mode, not `view`.
+
+This new work sizes everything in `svh` (`.stage`, `.plane`,
+`.overture-block`, `.band`, …) where the three pre-existing templates use
+`dvh`. That split is deliberate, not inconsistent: `svh` is static — it never
+resizes when a mobile toolbar shows or hides — which is exactly why
+`measureStickyHeight` above can measure a sticky child's height once and
+trust it. Size a scroll-driven element in `dvh` instead and its height moves
+under the toolbar the same way `window.innerHeight` does, reopening the
+mismatch `measureStickyHeight` exists to avoid.
+
+**Author every driven property as `var(--p, X)` where X is the settled value.**
+Unset `--p` then resolves to the at-rest appearance, so no-JS and
+`prefers-reduced-motion` are both handled by simply not registering the
+element — there is no second code path and no `@media` block to keep in sync.
+
+The loop caches element offsets at registration and refreshes them on
+`ResizeObserver`, so it never calls `getBoundingClientRect` per frame. It parks
+when nothing registered is on screen and whenever `document.hidden`.
+
+The section components carry their own `use:inview` entrance. `ScrollBody`
+neutralizes that inherited `.reveal` inside its subtree so the plane owns the
+choreography; the section components themselves are untouched.
+
+three.js reaches guests **only** through `overture`'s async chunk
+(`envelope-webgl.ts`), pinned by `tests/unit/bundle.test.ts` to under 150 KB
+gzipped (currently ~127 KB). Never import it eagerly. Its geometry is
+procedural because the CSP (`default-src 'self'`, no `worker-src`) blocks
+DRACO's blob worker.
+
+**SVG photos never reach the GPU as an `<img>`.** three.js's own `TextureLoader`
+hands the raw `<img>` element straight to `texImage2D`, and a browser's GPU
+upload of an SVG source can fail even though the `<img>` itself already fired
+`load` — observed as `texSubImage2D: bad image data` followed by the texture
+going immutable/undefined, which renders as a solid broken-color block, not
+"no photo." `envelope-webgl.ts` never imports `TextureLoader` at all, for
+exactly this reason: its only texture path is `composeCardFace`, which
+rasterizes the photo through an offscreen 2D canvas (`drawImage`, which
+accepts any decoded source, raster or vector, uniformly) before ever handing
+anything to `CanvasTexture`. **The rule for any future texture in this scene:
+rasterize through a 2D canvas first — never hand three.js an `<img>` (or a
+`TextureLoader` URL) directly**, or a vector-source photo reopens this exact
+failure.
+
+## The open/lock convention (2026-08-02)
+
+Every template locks its cover/envelope shut from the very first SSR byte —
+`class:locked={!opened}`, with `opened` false on the server too — not from a
+post-hydration flag. A hydration gate leaves a window between first paint and
+the JS bundle executing where the page is scrollable; a guest on a slow phone
+can scroll into the body during that window and then get yanked back when the
+lock snaps on. SSR-immediate `class:locked` closes the window entirely.
+
+That leaves exactly one guest who can never fire the open gesture to unlock
+the page: one with no JS at all. Every template frees them with a
+`<noscript><style>` block using `!important` (Svelte scopes `.locked` behind
+a hash class three selectors deep, so a plain override loses the specificity
+fight) — **but the override is not copy-paste between templates**, because
+each one's base CSS is different:
+
+This only works because of a specific, load-bearing HTML parsing rule: with
+scripting enabled (the normal case), the parser treats everything inside
+`<noscript>` — including this `<style>` tag — as opaque raw text, so it never
+becomes a real, active style element; with scripting disabled, the parser
+switches modes and parses that same content as ordinary markup, and the
+`<style>` activates. That's the entire mechanism that makes the override
+apply to no-JS guests only. A refactor that moved this CSS into `{@html}` or
+a client-created `<style>` element would lose that scripting-conditional
+behavior — both apply unconditionally, so the override would activate for
+every guest, JS or not, silently unlocking every cover. No test catches this;
+it has to be caught in review. One more thing that makes these blocks unlike
+the rest of this file: Svelte only scopes the component's own top-level
+`<style>` tag, not markup sitting inert inside `<noscript>`, so
+`.scroller.locked`/`.track.locked`/etc. here are genuinely unscoped, global
+CSS selectors — the `!important` is compensating for both a specificity gap
+_and_ the lack of Svelte's usual scoping hash.
+
+- `slides` and `cinematic` reset only one overflow axis (`overflow-y` /
+  `overflow-x` respectively). Their `.locked` rule never touches height, so
+  resetting height too would be pointless at best — and if you add it
+  anyway, you'll collapse their `100dvh` scroll-snap container instead of
+  freeing it.
+- `edges`, `depth`, and `overture` reset both `height` and `overflow`. Unlike
+  the two above, their base rule sets neither — `.locked` itself adds both —
+  so the override has to put both back (`height: auto`, `overflow: visible`)
+  or the guest stays capped at one viewport tall.
+- `cinematic` additionally neutralizes its cover overlay. Its cover is
+  `position: absolute; inset: 0` with an opaque background — not in normal
+  flow — so restoring the track's overflow alone frees nothing: the opaque
+  cover still sits on top of the whole deck forever, since a no-JS guest can
+  never fire `onopen` to add the `.cover.gone` class that would normally hide
+  it. The override applies `.cover.gone`'s own declarations
+  (`opacity`/`visibility`/`pointer-events`) directly. What the guest trades
+  for that: the personalized greeting (`t('cover.dear', …)`, "For \<guest\>")
+  lives only on this cover, nowhere else in the deck, so a no-JS guest on
+  `cinematic` reaches every scene but never sees their own name addressed —
+  an accepted, deliberate gap (see the reasoning above), not an oversight.
+
+Work out the right override for a new template instead of copying one:
+copying `edges`'s reset onto a scroll-snap deck collapses it, and copying
+`slides`'s onto a plain scrolling page leaves it locked at one viewport tall.
+
 ## Adding a new module
 
 1. `src/lib/templates/<id>/Template.svelte` — implement `TemplateProps`
@@ -68,17 +211,58 @@ enforces it). `wrangler r2 object put` still works for bulk/manual placement.
 3. Add the id to `TEMPLATE_IDS` (`src/lib/themes/schema.ts`) and register it
    in `src/lib/templates/registry.ts` (name + tagline shown in the studio
    picker).
-4. Rules every module must keep: theme colors/fonts come from the `--ei-*`
+4. Add an entry to `MEDIA_GUIDE` in
+   `src/routes/studio/(app)/events/[id]/theme/+page.svelte` — the hint line
+   shown above the media manager in Studio → Theme → Photos & Video,
+   explaining what the layout actually does with each photo slot (which is
+   the cover/hero, which are reused as bands or a rotation, which is last,
+   whether a background video applies). `MEDIA_GUIDE` is typed
+   `Record<TemplateId, string>` for the same reason `STOCK_SETS` is below: a
+   `TEMPLATE_IDS` entry with no matching guide fails `npm run check` outright
+   instead of silently showing that layout's owners a blank hint line forever.
+5. Add a curated entry to `STOCK_SETS` in `src/lib/templates/stock.ts`.
+   `STOCK_SETS` is typed `Record<TemplateId, string[]>`, so a `TEMPLATE_IDS`
+   entry with no matching stock set fails both `npm run check` (a TypeScript
+   error, not a runtime surprise) and `tests/unit/stock.test.ts` outright —
+   there's no way to add a template without doing this. At least 3 images,
+   each an existing `/photos/<name>.jpg` path under `static/photos`.
+6. Rules every module must keep: theme colors/fonts come from the `--ei-*`
    CSS variables; `letter-spacing: 0` for RTL (Arabic never tracks — every
    tracked-caps rule needs the `[dir='rtl']` reset, including `text-indent`);
    no external origins (CSP is self + Turnstile only); content must render
-   without JS (reveal classes are JS-added); music is an enhancement, never a
-   gate; include an element with `data-section="rsvp"` and `id="slide-0"` as
-   the post-open scroll target. The `gifts` section renders only when the
-   owner filled the gifts note text.
-5. Seed a fixture event in `tests/seed/seed-e2e.ts` and add a spec to
+   without JS (reveal classes are JS-added; see "The open/lock convention"
+   above for the cover/envelope specifically); music is an enhancement, never
+   a gate; include an element with `data-section="rsvp"`, and give exactly
+   one element `id="slide-0"` as the dispatcher's post-open scroll target —
+   never zero, never two. If you build on `ScrollBody`, its default puts the
+   anchor on its own `.overture-block` (the ring-draw/engraved-date moment
+   that opens every ScrollBody) rather than on `sections[0]` — anchoring on
+   the first ordinary section instead would carry the guest straight past
+   that signature moment, the same class of bug `ownsSlideAnchor` was
+   introduced to fix for `overture`. Pass `ownsSlideAnchor={false}` and place
+   the id yourself on whatever sits between the open gesture and `ScrollBody`
+   instead (see `overture`'s envelope stage) if something _else_ already
+   fills that role for your template — otherwise the dispatcher's post-open
+   smooth-scroll sails straight through that content to `ScrollBody`'s
+   `.overture-block` instead of stopping there. The `gifts` section renders
+   only when the owner filled the gifts note text.
+7. Seed a fixture event in `tests/seed/seed-e2e.ts` and add a spec to
    `tests/e2e/templates.spec.ts` asserting the module's signature elements +
-   one RSVP round-trip.
+   one RSVP round-trip. Two traps whoever writes the no-JS/reduced-motion
+   coverage will hit:
+   - `toBeVisible()` does **not** catch content clipped by an ancestor's
+     `overflow: hidden` — same blind spot as `toBeAttached()` — so a bare
+     visibility assertion on `[data-section="rsvp"]` passes even if the lock
+     regressed and the section is still trapped off-screen. Use the
+     `assertReachableByNativeScroll` helper in `tests/e2e/templates.spec.ts`,
+     which drives a real wheel-scroll gesture and asserts the element's
+     bounding box actually enters the viewport.
+   - `test.use({ reducedMotion: 'reduce' })` is silently a no-op in this
+     Playwright/Chromium setup — verified directly, `matchMedia` still
+     reports `prefers-reduced-motion: false` with the context option set,
+     even on `about:blank`. Call `page.emulateMedia({ reducedMotion: 'reduce' })`
+     at runtime instead, or you'll spend an afternoon debugging a test that
+     never drove the scenario it claims to.
 
 ## Operational notes
 

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import type { SubmitFunction } from '@sveltejs/kit';
-	import { SECTION_IDS } from '$lib/themes/schema';
+	import { SECTION_IDS, type TemplateId } from '$lib/themes/schema';
 
 	let { data, form } = $props();
 
@@ -10,7 +10,7 @@
 	// bind:group-controlled — a plain checked= would be reverted by re-renders.
 	// Intentional local read: form state is seeded once from load data.
 	// svelte-ignore state_referenced_locally
-	let selectedTemplate = $state(data.theme.template as string);
+	let selectedTemplate = $state<TemplateId>(data.theme.template);
 	const activeTemplate = $derived(selectedTemplate);
 	// The deck layouts live over photography: only the accent color applies.
 	const isDeck = $derived(activeTemplate === 'slides' || activeTemplate === 'cinematic');
@@ -27,14 +27,22 @@
 		['media', 'Photos & Video']
 	];
 
-	// What this layout does with the media — shown above the manager.
-	const MEDIA_GUIDE: Record<string, string> = {
+	// What this layout does with the media — shown above the manager. Typed
+	// `Record<TemplateId, string>` (not `Record<string, string>`) for the same
+	// reason `STOCK_SETS` is: a `TEMPLATE_IDS` entry with no matching guide
+	// here fails `npm run check` outright instead of silently rendering a
+	// blank hint line for that layout's owners forever.
+	const MEDIA_GUIDE: Record<TemplateId, string> = {
 		slides:
 			'Signature Deck: the photos crossfade as one breathing wall behind every slide (the first is the cover). A background video replaces the photo wall.',
 		edges:
 			'Torn-Paper Story: the first photo is the hero, the middle ones become the torn photo bands, and the last one sits in the closing polaroid.',
 		cinematic:
-			'Horizon: the photos rotate behind the scenes (the first is the cover and poster; the last sits in the closing polaroid). A background video replaces the rotation.'
+			'Horizon: the photos rotate behind the scenes (the first is the cover and poster; the last sits in the closing polaroid). A background video replaces the rotation.',
+		depth:
+			'Depth — Parallax Story: every photo drifts together on the fixed backdrop behind the words, then repeats one at a time in the bands between sections.',
+		overture:
+			"Overture — The Envelope: the first photo becomes a faint image baked into the sealed card's face, visible before the guest even opens it — everything after that is Depth's parallax story."
 	};
 
 	// Trilingual texts: one language visible at a time, all three submitted.

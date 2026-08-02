@@ -8,13 +8,19 @@ export const E2E = {
 	edgesEventId: 'ev_e2e_3333333333',
 	cineSlug: 'e2e-cine',
 	cineEventId: 'ev_e2e_4444444444',
+	depthSlug: 'e2e-depth',
+	depthEventId: 'ev_e2e_5555555555',
+	overtureSlug: 'e2e-overture',
+	overtureEventId: 'ev_e2e_6666666666',
 	tokens: {
 		guest: 'E2eGuestTok1111111111x',
 		decline: 'E2eDeclineTok111111111',
 		revoked: 'E2eRevokedTok111111111',
 		other: 'E2eOtherTok11111111111',
 		edges: 'E2eEdgesTok11111111111',
-		cine: 'E2eCineTok111111111111'
+		cine: 'E2eCineTok111111111111',
+		depth: 'E2eDepthTok11111111111',
+		overture: 'E2eOvertTok11111111111'
 	},
 	owner: { email: 'e2e-owner@example.com', password: 'e2e-owner-passphrase-1', name: 'E2E Owner' },
 	couple: { email: 'e2e-couple@example.com', name: 'Nour & Leo' }

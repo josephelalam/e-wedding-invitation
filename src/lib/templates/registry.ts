@@ -3,6 +3,8 @@ import type { TemplateId } from '$lib/themes/schema';
 import SlidesTemplate from './slides/Template.svelte';
 import EdgesTemplate from './edges/Template.svelte';
 import CinematicTemplate from './cinematic/Template.svelte';
+import DepthTemplate from './depth/Template.svelte';
+import OvertureTemplate from './overture/Template.svelte';
 import type { TemplateProps } from './types';
 
 // The module registry (owner goal: keep adding layouts over time).
@@ -40,5 +42,21 @@ export const TEMPLATES: Record<TemplateId, TemplateMeta> = {
 			'Swipe sideways through full-screen scenes over a breathing photo wall — formal invitation, countdown ledger, venues, a tilted polaroid finale.',
 		usesImages: true,
 		component: CinematicTemplate
+	},
+	depth: {
+		id: 'depth',
+		name: 'Depth — Parallax Story',
+		tagline:
+			'A continuous scroll with real depth: the photo wall drifts behind the words, each page settles in and recedes as you pass, photo bands breathe between them.',
+		usesImages: true,
+		component: DepthTemplate
+	},
+	overture: {
+		id: 'overture',
+		name: 'Overture — The Envelope',
+		tagline:
+			'A sealed envelope that opens under the guest’s thumb: the flap lifts, the card rises and fills the screen, then the parallax story begins.',
+		usesImages: true,
+		component: OvertureTemplate
 	}
 };

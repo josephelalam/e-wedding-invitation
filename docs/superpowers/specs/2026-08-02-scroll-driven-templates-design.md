@@ -230,20 +230,41 @@ the DOM. After disposal the GPU is idle for the rest of the visit.
 
 ## 6. Fallback matrix
 
-| Condition                      | `depth`                         | `overture`                                   |
-| ------------------------------ | ------------------------------- | -------------------------------------------- |
-| No JS                          | all content, settled, no motion | sealed envelope, card content readable below |
-| `prefers-reduced-motion`       | not registered; `--p` unset     | envelope pre-opened, no scrub                |
-| JS, no WebGL                   | —                               | CSS 3D envelope                              |
-| WebGL available                | —                               | three.js, same scrub                         |
-| Chunk 404 (120 s cache window) | —                               | `.catch()` → CSS envelope, invisibly         |
+No-JS and `prefers-reduced-motion` both leave `--p` unset, so they are the same
+rest state by construction — one state to reason about and one to test. An
+earlier draft asked for a sealed envelope on no-JS and an open one on reduced
+motion; that would have required the engine to write `--p: 1` explicitly on the
+reduced-motion path, and it bought nothing a guest cares about. Amended
+2026-08-02 during pre-flight review.
+
+| Condition                      | `depth`                         | `overture`                                |
+| ------------------------------ | ------------------------------- | ----------------------------------------- |
+| No JS                          | all content, settled, no motion | envelope open, card and story readable    |
+| `prefers-reduced-motion`       | not registered; `--p` unset     | envelope open, no scrub — same rest state |
+| JS, no WebGL                   | —                               | CSS 3D envelope                           |
+| WebGL available                | —                               | three.js, same scrub                      |
+| Chunk 404 (120 s cache window) | —                               | `.catch()` → CSS envelope, invisibly      |
 
 ## 7. Budget
 
 - `three` is the only new runtime dependency, and it must reach guests
-  **only** through `overture`'s async chunk. A guest served `depth` — or any
-  of the three existing templates — downloads zero additional bytes beyond the
-  ~1.5 KB engine. This is a bundling guarantee, not a `package.json` one.
+  **only** through `overture`'s async chunk — measured and enforced, see
+  below. It does **not** follow that a guest served `depth`, or any of the
+  three pre-existing templates, downloads zero additional bytes: `registry.ts`
+  statically imports all five `Template.svelte` files (so both the guest
+  dispatcher and the studio's instant-preview template switcher can render
+  whichever one is picked), and since none of the five is ever imported from
+  anywhere else, the bundler inlines all of them — plus `ScrollBody`,
+  `Envelope`, and `scroll-progress.ts` — into the one chunk that import graph
+  produces. Measured from a real production build: that chunk (Vite names it
+  `InvitationPage`) is ~54 KB raw / ~16 KB gzipped, and every guest on every
+  template downloads all of it, not just the code for their own event's
+  layout. What the ~1.5 KB figure actually describes is `scroll-progress.ts`
+  in isolation, not what a guest's browser fetches. The guarantee that does
+  hold, and is the one this budget section exists to protect: three.js itself
+  (the ~127 KB payload measured below) never joins that eager chunk — it's
+  reachable only through `overture`'s own `dynamicImports` edge, which is
+  exactly what `tests/unit/bundle.test.ts` walks the build manifest to prove.
 - `overture`'s three.js chunk has a **hard ceiling of 150 KB gzipped, measured
   from the real production build**. If it exceeds that, the fallback is
   hand-rolled WebGL or OGL (~10 KB); a six-plane scene is simple enough for

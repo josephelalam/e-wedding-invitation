@@ -80,6 +80,22 @@
 	</div>
 </div>
 
+<noscript>
+	<style>
+		/* No-JS guests can never fire `onopen`, so the SSR-immediate `.scroller.locked`
+		   lock above would trap them behind the cover forever — this is their only
+		   way in. Only `overflow-y` is reset: `height: 100dvh` is the scroller's own
+		   base rule (not something `.locked` adds), and the scroll-snap layout
+		   depends on that box staying viewport-height, so it must not be touched.
+		   `!important` is required: Svelte scopes `.scroller.locked` with its own
+		   hash class (e.g. `.scroller.locked.svelte-abc123`), so a plain `.locked`
+		   rule here would lose the specificity fight. */
+		.scroller.locked {
+			overflow-y: auto !important;
+		}
+	</style>
+</noscript>
+
 <style>
 	/* Photography is the palette: the deck speaks monochrome ivory over the
 	   photo wall, whatever the page theme is (the dispatcher re-scopes the

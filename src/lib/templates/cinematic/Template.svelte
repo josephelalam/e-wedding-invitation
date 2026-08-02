@@ -281,6 +281,44 @@
 	{/if}
 </div>
 
+<noscript>
+	<style>
+		/* No-JS guests can never fire `onopen`, so the SSR-immediate `.track.locked`
+		   lock above would trap them behind the cover forever — this is their only
+		   way in. Only `overflow-x` is reset: `height: 100dvh` is the track's own
+		   base rule (not something `.locked` adds), and the horizontal scroll-snap
+		   layout depends on that box staying viewport-height, so it must not be
+		   touched.
+		   `!important` is required: Svelte scopes `.track.locked` with its own hash
+		   class (e.g. `.track.locked.svelte-abc123`), so a plain `.locked` rule
+		   here would lose the specificity fight. */
+		.track.locked {
+			overflow-x: auto !important;
+		}
+
+		/* Unlike `slides`/`edges`, this deck's cover is `position: absolute; inset: 0;
+		   z-index: 20` with an opaque background — not in normal flow — so restoring
+		   `.track` overflow alone frees nothing: the cover would still sit on top of
+		   the whole deck, fully opaque, forever (no-JS guests can never fire `onopen`
+		   to add `.gone`). We can't just make `.cover` `position: static` instead —
+		   that would be more faithful in principle, but it restructures a complex
+		   layout we can't visually verify here. So instead we neutralize the cover
+		   outright with the same three declarations `.cover.gone` applies. The
+		   consequence: a no-JS guest lands directly on the deck with no cover at all.
+		   That's the right trade — the cover's only interactive element is a button
+		   that cannot work without JS, so keeping it visible would only show a dead
+		   end instead of the invitation.
+		   `!important` is required: Svelte scopes `.cover` with its own hash class
+		   (e.g. `.cover.svelte-abc123`), so a plain `.cover` rule here would lose the
+		   specificity fight. */
+		.cover {
+			opacity: 0 !important;
+			visibility: hidden !important;
+			pointer-events: none !important;
+		}
+	</style>
+</noscript>
+
 <style>
 	/* Photography is the palette (dispatcher re-scopes surfaces to ivory-over-
 	   ink for this deck; --ei-accent carries the couple's theme). */

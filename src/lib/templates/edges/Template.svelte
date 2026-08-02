@@ -130,6 +130,23 @@
 	</footer>
 </div>
 
+<noscript>
+	<style>
+		/* No-JS guests can never fire `onopen`, so the SSR-immediate `.story.locked`
+		   lock above would trap them behind the cover forever — this is their only
+		   way in. Unlike slides/cinematic, `.story`'s base rule sets no height or
+		   overflow at all — `.locked` adds both `height: 100dvh` and
+		   `overflow: hidden` itself, so both must be reset here.
+		   `!important` is required: Svelte scopes `.story.locked` with its own hash
+		   class (e.g. `.story.locked.svelte-abc123`), so a plain `.locked` rule
+		   here would lose the specificity fight. */
+		.story.locked {
+			height: auto !important;
+			overflow: visible !important;
+		}
+	</style>
+</noscript>
+
 <style>
 	.story {
 		background: var(--ei-bg);
