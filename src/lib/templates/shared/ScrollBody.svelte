@@ -21,13 +21,25 @@
 		ctx,
 		currentRsvp,
 		errorKey,
-		preview
+		preview,
+		ownsSlideAnchor = true
 	}: {
 		data: InviteData;
 		ctx: TemplateCtx;
 		currentRsvp: RsvpView;
 		errorKey: string | null;
 		preview: boolean;
+		// Whether this ScrollBody instance puts the dispatcher's `id="slide-0"`
+		// post-open scroll target (docs/templates.md module contract) on its own
+		// first section. Defaults to true — the original, still-correct behavior
+		// for every template that has nothing between the open gesture and this
+		// shell. `overture` passes false: its 200svh envelope stage sits between
+		// the tap and ScrollBody, so anchoring here would make the dispatcher's
+		// smooth-scroll sweep straight through the whole envelope instead of
+		// leaving the guest at its top to scrub it. `overture` puts `id="slide-0"`
+		// on the envelope stage instead (see Envelope.svelte), so exactly one
+		// element still carries the id.
+		ownsSlideAnchor?: boolean;
 	} = $props();
 
 	const sections = $derived(
@@ -82,7 +94,7 @@
 			<section
 				class="plane"
 				class:hold={holds(section)}
-				id={index === 0 ? 'slide-0' : undefined}
+				id={ownsSlideAnchor && index === 0 ? 'slide-0' : undefined}
 				data-section={section}
 				use:progress
 			>

@@ -29,7 +29,11 @@
 		/>
 	</div>
 
-	<ScrollBody {data} {ctx} {currentRsvp} {errorKey} {preview} />
+	<!-- ownsSlideAnchor is false here (unlike depth's identical mount): the
+	     envelope stage above carries `id="slide-0"` instead (see Envelope.svelte),
+	     so the dispatcher's post-open scroll lands the guest at the top of the
+	     envelope rather than sweeping through it to ScrollBody's first section. -->
+	<ScrollBody {data} {ctx} {currentRsvp} {errorKey} {preview} ownsSlideAnchor={false} />
 </div>
 
 <noscript>

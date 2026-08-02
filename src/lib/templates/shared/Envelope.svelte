@@ -100,7 +100,20 @@
 	});
 </script>
 
-<div class="stage" class:sealed={!opened} class:webgl bind:this={stage} use:progress={'sticky'}>
+<!-- `id="slide-0"` lives here rather than on ScrollBody's first section: this
+     stage is what the dispatcher's post-open smooth-scroll (InvitationPage's
+     `open()`) must resolve to for `overture`, so the guest lands at the top of
+     the still-scrubbable envelope instead of being carried straight through
+     it. ScrollBody's `ownsSlideAnchor` prop is set to false by overture/Template.svelte
+     for exactly this reason — see the comment there and in ScrollBody.svelte. -->
+<div
+	class="stage"
+	class:sealed={!opened}
+	class:webgl
+	bind:this={stage}
+	use:progress={'sticky'}
+	id="slide-0"
+>
 	<div class="sticky">
 		<canvas class="gl" class:on={webgl} bind:this={canvas} aria-hidden="true"></canvas>
 		<div class="env" aria-label={title}>
