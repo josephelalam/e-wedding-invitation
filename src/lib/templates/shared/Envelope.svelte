@@ -1,9 +1,11 @@
 <script lang="ts">
 	import { progress } from '$lib/actions/scroll-progress';
+	import type { EnvelopeScene } from '$lib/templates/shared/envelope-webgl';
 
 	// The envelope overture: a sealed envelope whose flap opens and whose card
-	// rises and fills the screen as the guest scrolls. CSS 3D is the default
-	// renderer; Task 5 layers an optional WebGL upgrade on top of it.
+	// rises and fills the screen as the guest scrolls. CSS 3D is the DEFAULT
+	// renderer and the permanent fallback; three.js is an upgrade that swaps in
+	// only when it can, and disposes itself the moment the scrub completes.
 	//
 	// The tap is mandatory, not decorative: it is the audio-unlock gesture, and
 	// iOS Safari will not start audio from a scroll.
@@ -24,10 +26,83 @@
 		opened: boolean;
 		onopen: () => void;
 	} = $props();
+
+	let stage: HTMLElement | undefined = $state();
+	let canvas: HTMLCanvasElement | undefined = $state();
+	let webgl = $state(false);
+	let scene: EnvelopeScene | undefined;
+
+	function capable(): boolean {
+		if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return false;
+		const connection = (navigator as { connection?: { saveData?: boolean } }).connection;
+		if (connection?.saveData === true) return false;
+		const memory = (navigator as { deviceMemory?: number }).deviceMemory;
+		if (typeof memory === 'number' && memory < 4) return false;
+		const probe = document.createElement('canvas').getContext('webgl2');
+		if (!probe) return false;
+		probe.getExtension('WEBGL_lose_context')?.loseContext();
+		return true;
+	}
+
+	function currentProgress(): number {
+		const raw = stage?.style.getPropertyValue('--p');
+		return raw ? Number(raw) : 0;
+	}
+
+	// Fired by the open gesture, so the download overlaps the flap animation
+	// the CSS version is already running.
+	async function upgrade() {
+		if (webgl || scene || !capable()) return;
+		try {
+			const module = await import('$lib/templates/shared/envelope-webgl');
+			// A renderer swap mid-animation is worse than no upgrade at all.
+			if (currentProgress() > 0.15 || !canvas) return;
+			const styles = getComputedStyle(stage as HTMLElement);
+			scene = await module.mountEnvelope(canvas, {
+				accent: styles.getPropertyValue('--ei-accent').trim() || '#b8966e',
+				paper: styles.getPropertyValue('--ei-bg').trim() || '#faf7f1',
+				photo
+			});
+			webgl = true;
+		} catch {
+			// Guest HTML is edge-cached 120s, so after a deploy the chunk URL can
+			// 404. A failed upgrade must be invisible: the CSS envelope stays.
+		}
+	}
+
+	function handleOpen() {
+		onopen();
+		void upgrade();
+	}
+
+	// Feed the shared scroll progress to the scene, and free the GPU the moment
+	// the overture is over.
+	$effect(() => {
+		if (!webgl || !scene || !stage) return;
+		let raf = 0;
+		const pump = () => {
+			const p = currentProgress();
+			scene?.setProgress(p);
+			if (p >= 0.995) {
+				scene?.dispose();
+				scene = undefined;
+				webgl = false;
+				return;
+			}
+			raf = requestAnimationFrame(pump);
+		};
+		raf = requestAnimationFrame(pump);
+		return () => {
+			cancelAnimationFrame(raf);
+			scene?.dispose();
+			scene = undefined;
+		};
+	});
 </script>
 
-<div class="stage" class:sealed={!opened} use:progress>
+<div class="stage" class:sealed={!opened} class:webgl bind:this={stage} use:progress>
 	<div class="sticky">
+		<canvas class="gl" class:on={webgl} bind:this={canvas} aria-hidden="true"></canvas>
 		<div class="env" aria-label={title}>
 			<div class="card">
 				{#if photo}
@@ -47,7 +122,7 @@
 		{#if !opened}
 			<div class="gate">
 				<p class="greeting">{greeting}</p>
-				<button class="open" type="button" onclick={onopen}>{openLabel}</button>
+				<button class="open" type="button" onclick={handleOpen}>{openLabel}</button>
 			</div>
 		{/if}
 	</div>
@@ -68,6 +143,25 @@
 		place-items: center;
 		perspective: 1400px;
 		overflow: hidden;
+	}
+
+	.gl {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		opacity: 0;
+		pointer-events: none;
+	}
+
+	.gl.on {
+		opacity: 1;
+	}
+
+	/* When WebGL takes over, the CSS envelope steps aside — same scrub, same
+	   geometry, so the handoff is invisible. */
+	.stage.webgl .env {
+		opacity: 0;
 	}
 
 	/* Before the gesture the guest cannot scroll past the envelope. */
