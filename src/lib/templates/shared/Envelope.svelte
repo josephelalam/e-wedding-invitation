@@ -100,7 +100,7 @@
 	});
 </script>
 
-<div class="stage" class:sealed={!opened} class:webgl bind:this={stage} use:progress>
+<div class="stage" class:sealed={!opened} class:webgl bind:this={stage} use:progress={'sticky'}>
 	<div class="sticky">
 		<canvas class="gl" class:on={webgl} bind:this={canvas} aria-hidden="true"></canvas>
 		<div class="env" aria-label={title}>

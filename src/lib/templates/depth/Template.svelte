@@ -17,15 +17,17 @@
      guest who needs an escape hatch is one with no JS to ever fire `onopen`,
      and `<noscript>` targets exactly that case with no timing window at all. -->
 <div class="depth" class:locked={!opened}>
-	<Cover
-		title={ctx.title}
-		dateParts={ctx.dateParts}
-		greeting={t(ctx.lang, 'cover.dear', { name: data.invitation.guestLabel })}
-		openLabel={t(ctx.lang, 'cover.open')}
-		monogram={ctx.monogram}
-		{opened}
-		{onopen}
-	/>
+	<div class="gate-layer">
+		<Cover
+			title={ctx.title}
+			dateParts={ctx.dateParts}
+			greeting={t(ctx.lang, 'cover.dear', { name: data.invitation.guestLabel })}
+			openLabel={t(ctx.lang, 'cover.open')}
+			monogram={ctx.monogram}
+			{opened}
+			{onopen}
+		/>
+	</div>
 
 	<ScrollBody {data} {ctx} {currentRsvp} {errorKey} {preview} />
 </div>
@@ -54,5 +56,17 @@
 	.depth.locked {
 		height: 100svh;
 		overflow: hidden;
+	}
+
+	/* Cover is a plain in-flow section with no z-index of its own, and
+	   ScrollBody's `.photo-plane` is a position:fixed, z-index:0 sibling that
+	   comes later in the DOM. Same-tier positioned elements paint in document
+	   order, so without a stacking context of its own the cover would render
+	   *behind* the fixed photo plane regardless of source order. z-index:1
+	   here matches the tier `.column` already uses inside ScrollBody to clear
+	   that same photo plane. */
+	.gate-layer {
+		position: relative;
+		z-index: 1;
 	}
 </style>

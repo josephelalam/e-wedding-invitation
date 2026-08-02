@@ -20,7 +20,7 @@
  */
 import type { Action } from 'svelte/action';
 
-export type ProgressMode = 'view' | 'page';
+export type ProgressMode = 'view' | 'page' | 'sticky';
 
 const clamp01 = (value: number) => (value < 0 ? 0 : value > 1 ? 1 : value);
 
@@ -36,6 +36,24 @@ export function pageProgress(scrollY: number, vh: number, docHeight: number): nu
 	const range = docHeight - vh;
 	if (range <= 0) return 0;
 	return clamp01(scrollY / range);
+}
+
+/**
+ * 'view' mode measures an element's transit *through* the viewport — right
+ * for content that scrolls past. A `position: sticky` stage doesn't transit:
+ * it pins at the viewport top and holds still while the guest scrolls its
+ * own height away underneath. Modeling that with 'view' semantics reports
+ * progress for a transit that never happens (an element pinned at the
+ * document top reads ~0.33 progress at rest, well into its "settled" range),
+ * so a stage with a sticky child needs this dedicated mode instead: 0 when
+ * the stage's top reaches the viewport top, 1 when the sticky child unpins,
+ * i.e. once scrollY has advanced by exactly the stage's own scrollable
+ * range (height - vh).
+ */
+export function stickyProgress(scrollY: number, vh: number, top: number, height: number): number {
+	const range = height - vh;
+	if (range <= 0) return 0;
+	return clamp01((scrollY - top) / range);
 }
 
 type Entry = {
@@ -87,7 +105,9 @@ function tick() {
 		const value =
 			entry.mode === 'page'
 				? pageProgress(scrollY, vh, docHeight)
-				: computeProgress(scrollY, vh, entry.top, entry.height);
+				: entry.mode === 'sticky'
+					? stickyProgress(scrollY, vh, entry.top, entry.height)
+					: computeProgress(scrollY, vh, entry.top, entry.height);
 		// Writing an identical value still invalidates style; skip the no-op.
 		if (value !== entry.last) {
 			entry.last = value;
@@ -113,7 +133,8 @@ function ensureGlobals() {
 	observer = new IntersectionObserver((records) => {
 		for (const record of records) {
 			// The page-mode plane is position:fixed and always intersecting;
-			// view-mode entries park the loop once they leave.
+			// view- and sticky-mode entries are ordinary in-flow elements, so
+			// they park the loop once they leave.
 			const entry = entries.get(record.target as HTMLElement);
 			if (entry) entry.visible = record.isIntersecting;
 		}
